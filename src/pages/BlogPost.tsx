@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calendar, User, Heart, MessageCircle, Eye, Share2, Copy, Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const shareUrl = (base: string, params: Record<string, string>) =>
     base + "?" + new URLSearchParams(params).toString();
@@ -225,7 +226,47 @@ const BlogPost = () => {
 
     const comments: BlogComment[] = blog?.comments ?? [];
 
-    if (loading || !blog) return <div className="container py-20 text-center">Loading...</div>;
+    if (loading || !blog) {
+        return (
+            <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <Skeleton className="h-10 w-32 mb-8 rounded-md" />
+                <div className="space-y-4 mb-8">
+                    <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-14 rounded-full" />
+                    </div>
+                    <Skeleton className="h-12 w-full max-w-2xl rounded-md" />
+                    <Skeleton className="h-12 w-3/4 max-w-md rounded-md" />
+                    <div className="flex gap-6 pt-2">
+                        <Skeleton className="h-4 w-24 rounded" />
+                        <Skeleton className="h-4 w-32 rounded" />
+                    </div>
+                </div>
+                <Skeleton className="w-full h-[400px] rounded-xl mb-10" />
+                <div className="space-y-3 mt-8">
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-4/5 rounded" />
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-2/3 rounded" />
+                </div>
+                <div className="mt-12 pt-8 border-t flex flex-wrap items-center gap-6">
+                    <Skeleton className="h-9 w-20 rounded-md" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                    </div>
+                </div>
+                <div className="mt-10 pt-8 border-t space-y-4">
+                    <Skeleton className="h-6 w-28 rounded" />
+                    <Skeleton className="h-24 w-full rounded-md" />
+                    <Skeleton className="h-10 w-24 rounded-md" />
+                </div>
+            </div>
+        );
+    }
 
     const tags = Array.isArray(blog.tags) ? blog.tags : [];
 

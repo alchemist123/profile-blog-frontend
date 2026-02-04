@@ -94,9 +94,9 @@ const BlogList = () => {
                                 </div>
                             )}
                             <CardHeader>
-                                <div className="flex gap-2 mb-2">
-                                    {blog.tags.map((tag) => (
-                                        <Badge key={tag} variant="secondary" className="text-xs">
+                                <div className="flex gap-2 mb-2 flex-wrap min-h-0 overflow-hidden">
+                                    {(blog.tags ?? []).slice(0, 3).map((tag) => (
+                                        <Badge key={tag} variant="secondary" className="text-xs shrink-0">
                                             {tag}
                                         </Badge>
                                     ))}
