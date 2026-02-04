@@ -1,28 +1,16 @@
 services:
-  mongodb:
-    image: mongo:7
-    container_name: profile-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: profile
-
-  backend:
+  profile-frontend:
+    container_name: profile-frontend
+    env_file:
+      - .env
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: profile-backend
-    restart: unless-stopped
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - VITE_BASE_URL=${VITE_BASE_URL}
+    expose:
+      - '3005'
     ports:
-      - "4000:4000"
-    environment:
-      PORT: 4000
-      MONGO_URI: mongodb://mongodb:27017/profile
-    depends_on:
-      - mongodb
+      - '3005:3005'
 
-volumes:
-  mongodb_data:
+    
