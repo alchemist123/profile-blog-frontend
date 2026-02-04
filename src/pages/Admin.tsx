@@ -27,7 +27,7 @@ const Admin = () => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "admin123") {
+        if (password === "100Thousand@123") {
             setIsAuthenticated(true);
         } else {
             alert("Invalid password");
