@@ -1,17 +1,12 @@
-import { NodeViewWrapper } from '@tiptap/react'
+import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
-interface HtmlBlockViewProps {
-    node: { attrs: { html: string } }
-    updateAttributes: (attrs: { html: string }) => void
-}
-
-export function HtmlBlockView({ node, updateAttributes }: HtmlBlockViewProps) {
-    const [isEditing, setIsEditing] = useState(!node.attrs.html)
-    const [editValue, setEditValue] = useState(node.attrs.html)
-
-    const html = node.attrs.html
+export function HtmlBlockView({ node, updateAttributes }: ReactNodeViewProps) {
+    const attrs = node.attrs as { html?: string }
+    const html = attrs.html ?? ''
+    const [isEditing, setIsEditing] = useState(!html)
+    const [editValue, setEditValue] = useState(html)
 
     const handleApply = () => {
         updateAttributes({ html: editValue })
@@ -19,7 +14,7 @@ export function HtmlBlockView({ node, updateAttributes }: HtmlBlockViewProps) {
     }
 
     const handleEdit = () => {
-        setEditValue(node.attrs.html)
+        setEditValue(html)
         setIsEditing(true)
     }
 
