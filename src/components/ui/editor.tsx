@@ -26,7 +26,7 @@ const extensions = [
     }),
     CodeBlock.configure({
         HTMLAttributes: {
-            class: 'rounded-md bg-muted p-4 font-mono text-sm my-4',
+            class: 'rounded-md p-4 font-mono text-sm my-4',
         },
     }),
     Youtube.configure({
