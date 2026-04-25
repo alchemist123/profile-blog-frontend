@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2, Plus, LogOut, Edit } from "lucide-react";
 import Editor from "@/components/ui/editor";
+import ProductivityDashboard from "@/components/admin/ProductivityDashboard";
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -185,9 +187,9 @@ const Admin = () => {
     }
 
     return (
-        <div className="container py-8 max-w-5xl">
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Your Stories</h1>
+        <div className="container mx-auto py-10 max-w-6xl px-6 md:px-12 flex flex-col">
+            <div className="w-full flex flex-col items-center justify-between md:flex-row mb-10 gap-6">
+                <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
                 <div className="flex gap-2">
                     <Button onClick={() => { setCurrentBlog({}); setIsEditing(true); }} className="rounded-full">
                         <Plus className="mr-2 h-4 w-4" /> Write a story
@@ -198,47 +200,60 @@ const Admin = () => {
                 </div>
             </div>
 
-            <div className="grid gap-4">
-                {blogs.length === 0 && (
-                    <div className="text-center py-20 text-muted-foreground">
-                        No stories yet. Start writing!
-                    </div>
-                )}
-                {blogs.map(blog => (
-                    <Card key={blog.id} className="group flex items-center justify-between p-6 hover:shadow-sm transition-all border-none shadow-none border-b rounded-none">
-                        <div className="flex-1 space-y-1">
-                            <h3 className="font-bold text-xl font-serif">{blog.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {new Date(blog.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' })} · {blog.summary?.slice(0, 100)}...
-                            </p>
-                            <div className="flex gap-2 pt-2">
-                                {blog.tags.map(tag => (
-                                    <span key={tag} className="bg-muted px-2 py-0.5 rounded-full text-xs text-muted-foreground">{tag}</span>
-                                ))}
+            <Tabs defaultValue="productivity" className="w-full max-w-full mx-auto flex flex-col items-center">
+                <TabsList className="mb-10 bg-muted/60 backdrop-blur-md rounded-full p-2 inline-flex h-auto items-center justify-center border shadow-sm w-fit mx-auto">
+                    <TabsTrigger value="stories" className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md transition-all focus-visible:ring-0 focus-visible:ring-offset-0">Stories</TabsTrigger>
+                    <TabsTrigger value="productivity" className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md transition-all focus-visible:ring-0 focus-visible:ring-offset-0">Productivity</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="stories" className="m-0 focus-visible:outline-none border-none outline-none w-full max-w-4xl mx-auto">
+                    <div className="grid gap-6">
+                        {blogs.length === 0 && (
+                            <div className="text-center py-20 text-muted-foreground">
+                                No stories yet. Start writing!
                             </div>
-                        </div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" onClick={async () => {
-                                const full = await getBlogById(blog.id);
-                                if (full) {
-                                    const content = (full.blocks?.length ?? 0) > 0
-                                        ? blocksToHtml(full.blocks!)
-                                        : (full.content ?? "");
-                                    setCurrentBlog({ ...full, content });
-                                } else {
-                                    setCurrentBlog({ ...blog, content: blog.content ?? "" });
-                                }
-                                setIsEditing(true);
-                            }}>
-                                <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(blog.id)}>
-                                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                            </Button>
-                        </div>
-                    </Card>
-                ))}
-            </div>
+                        )}
+                        {blogs.map(blog => (
+                            <Card key={blog.id} className="group flex items-center justify-between p-6 hover:shadow-sm transition-all border-none shadow-none border-b rounded-none">
+                                <div className="flex-1 space-y-1">
+                                    <h3 className="font-bold text-xl font-serif">{blog.title}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {new Date(blog.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' })} · {blog.summary?.slice(0, 100)}...
+                                    </p>
+                                    <div className="flex gap-2 pt-2">
+                                        {blog.tags.map(tag => (
+                                            <span key={tag} className="bg-muted px-2 py-0.5 rounded-full text-xs text-muted-foreground">{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button variant="ghost" size="icon" onClick={async () => {
+                                        const full = await getBlogById(blog.id);
+                                        if (full) {
+                                            const content = (full.blocks?.length ?? 0) > 0
+                                                ? blocksToHtml(full.blocks!)
+                                                : (full.content ?? "");
+                                            setCurrentBlog({ ...full, content });
+                                        } else {
+                                            setCurrentBlog({ ...blog, content: blog.content ?? "" });
+                                        }
+                                        setIsEditing(true);
+                                    }}>
+                                        <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(blog.id)}>
+                                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                    </Button>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                </TabsContent>
+                
+                <TabsContent value="productivity" className="m-0 focus-visible:outline-none border-none outline-none w-full max-w-6xl mx-auto px-2">
+                    <ProductivityDashboard />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };
