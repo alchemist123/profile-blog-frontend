@@ -15,11 +15,13 @@ const SPAN_CONFIGS = [
   { css: 'lg:col-span-3 md:col-span-2 col-span-1 row-span-2' },
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
+
 export function SortableWidget({ id, children }: SortableWidgetProps) {
   const [sizeIdx, setSizeIdx] = useState(0);
 
   useEffect(() => {
-    fetch('/api/v1/productivity/layout')
+    fetch(`${API_BASE}/layout`)
       .then(res => {
          if (!res.ok) throw new Error();
          return res.json();
@@ -50,11 +52,11 @@ export function SortableWidget({ id, children }: SortableWidgetProps) {
     const nextIdx = sizeIdx >= SPAN_CONFIGS.length - 1 ? 0 : sizeIdx + 1;
     setSizeIdx(nextIdx);
     
-    fetch('/api/v1/productivity/layout')
+    fetch(`${API_BASE}/layout`)
       .then(res => res.ok ? res.json() : {})
       .then((data: any) => {
          const payload = { ...data, sizes: { ...(data.sizes || {}), [id]: { spanIndex: nextIdx } } };
-         fetch('/api/v1/productivity/layout', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+         fetch(`${API_BASE}/layout`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       })
       .catch(() => {
          localStorage.setItem(`widget-sizeIndex-${id}`, nextIdx.toString());

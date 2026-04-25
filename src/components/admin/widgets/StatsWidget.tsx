@@ -1,12 +1,14 @@
 import { Activity, Database, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
+
 export default function StatsWidget() {
   const [stats, setStats] = useState({ tasksExecuted: 0, tasksGoal: 10, deepWorkHours: 0, efficiencyRatio: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/productivity/stats?period=today')
+    fetch(`${API_BASE}/stats?period=today`)
       .then(res => res.json())
       .then(data => {
          if (data) setStats({

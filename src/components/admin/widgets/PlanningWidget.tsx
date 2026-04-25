@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, CheckSquare, Square, Code } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
+
 export default function PlanningWidget() {
   const [task, setTask] = useState("");
   const [todos, setTodos] = useState<{id: string, text: string, done: boolean}[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/productivity/queue')
+    fetch(`${API_BASE}/queue`)
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setTodos(data); })
       .catch(console.error)
@@ -20,7 +22,7 @@ export default function PlanningWidget() {
     e.preventDefault();
     if (!task) return;
     
-    fetch('/api/v1/productivity/queue', {
+    fetch(`${API_BASE}/queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: task })
@@ -33,7 +35,7 @@ export default function PlanningWidget() {
   };
 
   const toggleDone = (id: string, currentDone: boolean) => {
-    fetch(`/api/v1/productivity/queue/${id}`, {
+    fetch(`${API_BASE}/queue/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ done: !currentDone })

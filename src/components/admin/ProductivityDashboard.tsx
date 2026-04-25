@@ -33,14 +33,16 @@ const INITIAL_WIDGETS: WidgetDef[] = [
   { id: 'report', component: <ReportWidget /> },
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
+
 export default function ProductivityDashboard() {
   const [widgets, setWidgets] = useState<WidgetDef[]>(INITIAL_WIDGETS);
 
   useEffect(() => {
-    fetch('/api/v1/productivity/layout')
+    fetch(`${API_BASE}/layout`)
       .then(res => {
-         if (!res.ok) throw new Error('Network error');
-         return res.json();
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
       })
       .then(data => {
         if (data && data.order) {
@@ -51,13 +53,13 @@ export default function ProductivityDashboard() {
         }
       })
       .catch(() => {
-         // Fallback to local storage if API backend goes offline temporarily
-         const saved = localStorage.getItem('dashboard-layout');
-         if (saved) {
-             const order = JSON.parse(saved);
-             const hydrated = order.map((id: string) => INITIAL_WIDGETS.find(w => w.id === id)).filter(Boolean);
-             if (hydrated.length === INITIAL_WIDGETS.length) setWidgets(hydrated);
-         }
+        // Fallback to local storage if API backend goes offline temporarily
+        const saved = localStorage.getItem('dashboard-layout');
+        if (saved) {
+          const order = JSON.parse(saved);
+          const hydrated = order.map((id: string) => INITIAL_WIDGETS.find(w => w.id === id)).filter(Boolean);
+          if (hydrated.length === INITIAL_WIDGETS.length) setWidgets(hydrated);
+        }
       });
   }, []);
 
@@ -79,18 +81,18 @@ export default function ProductivityDashboard() {
         const newIndex = items.findIndex((item) => item.id === over.id);
 
         const newItems = arrayMove(items, oldIndex, newIndex);
-        
+
         // Put exactly the API JSON Payload, maintaining existing backend values
-        fetch('/api/v1/productivity/layout')
-           .then(res => res.ok ? res.json() : {})
-           .then(data => {
-               const payload = { ...data, order: newItems.map(w => w.id) };
-               fetch('/api/v1/productivity/layout', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }).catch(console.error);
-           })
-           .catch(() => {
-               // Fallback Local Storage
-               localStorage.setItem('dashboard-layout', JSON.stringify(newItems.map(w => w.id)));
-           });
+        fetch(`${API_BASE}/layout`)
+          .then(res => res.ok ? res.json() : {})
+          .then(data => {
+            const payload = { ...data, order: newItems.map(w => w.id) };
+            fetch(`${API_BASE}/layout`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(console.error);
+          })
+          .catch(() => {
+            // Fallback Local Storage
+            localStorage.setItem('dashboard-layout', JSON.stringify(newItems.map(w => w.id)));
+          });
 
         return newItems;
       });
@@ -100,13 +102,13 @@ export default function ProductivityDashboard() {
   return (
     <div className="w-full bg-[#0B1015]/40 rounded-xl p-8 border border-slate-800 shadow-2xl relative">
       <div className="absolute top-0 right-0 p-4 opacity-50 text-[10px] font-mono text-emerald-500 tracking-[0.2em]">v5.0_PROD _API_ONLINE</div>
-      <DndContext 
+      <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[minmax(350px,_auto)] grid-flow-dense">
-          <SortableContext 
+          <SortableContext
             items={widgets.map(w => w.id)}
             strategy={rectSortingStrategy}
           >
