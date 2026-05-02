@@ -4,6 +4,8 @@ import Home from "@/pages/Home";
 import BlogList from "@/pages/BlogList";
 import BlogPost from "@/pages/BlogPost";
 import Admin from "@/pages/Admin";
+import PodXProject from "@/pages/PodXProject";
+import PodXDocs from "@/pages/PodXDocs";
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="podx/docs" element={<PodXDocs />} />
+          <Route path="podx" element={<PodXProject />} />
           <Route path="blog" element={<BlogList />} />
           <Route path="blog/:id" element={<BlogPost />} />
           <Route path="admin" element={<Admin />} />

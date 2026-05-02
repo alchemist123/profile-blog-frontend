@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Terminal, Cpu, Database, Calendar, FileText, GitBranch, Github, ExternalLink, Code2, Server, Cloud, Brain, BookMarked, Users, UserPlus } from "lucide-react";
+import { ArrowRight, Terminal, Cpu, Database, Calendar, FileText, GitBranch, Github, ExternalLink, Code2, Server, Cloud, Brain, BookMarked, Users, UserPlus, Network } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getBlogs, type BlogPost } from "@/lib/storage";
 
@@ -142,6 +142,101 @@ const Home = () => {
                             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full -z-10" />
                         </motion.div>
                     </div>
+                </div>
+            </section>
+
+            {/* PodX — Distributed LLM cluster */}
+            <section id="podx-project" className="relative scroll-mt-24 py-20 md:py-28 border-t border-border/10 bg-[#0B1015] overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-violet-600/15 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40" />
+
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.45 }}
+                        className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center"
+                    >
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/25 mb-6">
+                                <Network className="h-3.5 w-3.5 text-violet-400" />
+                                <span className="text-[10px] uppercase font-mono tracking-[0.2em] text-violet-300 font-semibold">
+                                    Project · Alpha v0.1
+                                </span>
+                            </div>
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-100 mb-4">
+                                <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
+                                    PodX
+                                </span>
+                                <span className="text-slate-100"> — distributed LLM cluster</span>
+                            </h2>
+                            <p className="text-slate-400 text-lg leading-relaxed max-w-xl mb-6">
+                                Connect devices over LAN, split transformer layers, and run{" "}
+                                <strong className="text-slate-200">70B+ models</strong> privately with an{" "}
+                                <strong className="text-slate-200">OpenAI-compatible API</strong>. One binary,
+                                mDNS discovery, Metal &amp; CUDA — no cloud required.
+                            </p>
+                            <ul className="space-y-2 mb-8 text-sm text-slate-500 font-mono">
+                                <li className="flex items-center gap-2">
+                                    <span className="text-emerald-500">▸</span> Pipeline parallelism across your machines
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-emerald-500">▸</span> Drop-in <code className="text-violet-400/90">/v1/chat/completions</code>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-emerald-500">▸</span> Rust · llama.cpp · gossip cluster state
+                                </li>
+                            </ul>
+                            <div className="flex flex-wrap gap-4">
+                                <Button
+                                    size="lg"
+                                    className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-900/40 border-0"
+                                    asChild
+                                >
+                                    <Link to="/podx">
+                                        Open PodX site <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                                <Button size="lg" variant="outline" className="rounded-full border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" asChild>
+                                    <Link to="/podx/docs">
+                                        Documentation <ArrowRight className="ml-2 h-4 w-4 opacity-70" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="relative"
+                        >
+                            <div className="rounded-2xl border border-violet-500/20 bg-[#050709]/90 backdrop-blur-sm p-6 shadow-2xl shadow-violet-950/50">
+                                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/5">
+                                    <div className="w-3 h-3 rounded-full bg-red-400/90" />
+                                    <div className="w-3 h-3 rounded-full bg-yellow-400/90" />
+                                    <div className="w-3 h-3 rounded-full bg-green-400/90" />
+                                    <span className="ml-2 text-[11px] font-mono text-slate-500">podx — zsh</span>
+                                </div>
+                                <pre className="font-mono text-xs sm:text-sm text-slate-400 leading-relaxed overflow-x-auto">
+                                    <span className="text-emerald-400">❯</span>{" "}
+                                    <span className="text-slate-200">podx start</span>
+                                    {"\n"}
+                                    <span className="text-slate-600">{"   "}Hardware: detected · gRPC :9090 · HTTP :8080</span>
+                                    {"\n"}
+                                    <span className="text-violet-400/90">{"   "}✓ Cluster ready · OpenAI-compatible endpoint</span>
+                                </pre>
+                                <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap gap-3 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                                    <span className="px-2 py-1 rounded bg-white/5 border border-white/10">70B+</span>
+                                    <span className="px-2 py-1 rounded bg-white/5 border border-white/10">$0 / token</span>
+                                    <span className="px-2 py-1 rounded bg-white/5 border border-white/10">100% local</span>
+                                </div>
+                            </div>
+                            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-violet-600/20 to-cyan-600/10 blur-xl -z-10" />
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 

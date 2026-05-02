@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PodX Docs — Installation, CLI Reference, HTTP API</title>
+<meta name="description" content="PodX documentation: installation guide for macOS, Linux, and Windows, quick start, CLI reference, HTTP API, GPU setup, and architecture.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--bg4:#21262d;
+  --bd:#21262d;--bd2:#30363d;
+  --pu:#7c3aed;--pl:#a78bfa;--pi:#818cf8;
+  --bl:#2563eb;--bll:#60a5fa;
+  --gn:#059669;--gnl:#34d399;
+  --cy:#0891b2;--cyl:#22d3ee;
+  --yw:#d97706;--ywl:#fcd34d;
+  --rd:#dc2626;--rdl:#fca5a5;
+  --tx:#e6edf3;--t2:#c9d1d9;--t3:#8b949e;--t4:#484f58;
+}
+a{color:var(--pl);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:'Cascadia Code','Fira Code','Menlo',Consolas,monospace;font-size:.85em;background:var(--bg3);border:1px solid var(--bd2);border-radius:4px;padding:1px 6px;color:var(--pl)}
+
+/* Top Nav */
+.topnav{position:sticky;top:0;z-index:100;background:rgba(13,17,23,.92);border-bottom:1px solid var(--bd);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 28px;height:56px;gap:20px}
+.topnav-logo{font-size:1rem;font-weight:900;background:linear-gradient(135deg,var(--pl),var(--pi));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;white-space:nowrap}
+.topnav-links{display:flex;gap:4px;margin-left:auto}
+.topnav-links a{color:var(--t3);font-size:.84rem;padding:5px 12px;border-radius:7px;transition:color .15s,background .15s}
+.topnav-links a:hover{color:var(--tx);background:var(--bg2);text-decoration:none}
+.topnav-links .hl{background:rgba(124,58,237,.15);color:var(--pl);border:1px solid rgba(124,58,237,.25)}
+.topnav-ver{font-size:.72rem;color:var(--t4);white-space:nowrap}
+
+/* Layout */
+.docs-layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
+
+/* Sidebar */
+aside{position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:28px 0;border-right:1px solid var(--bd);background:var(--bg)}
+aside::-webkit-scrollbar{width:3px}
+aside::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.sb-section{padding:0 16px;margin-bottom:28px}
+.sb-head{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t4);padding:0 8px;margin-bottom:8px}
+.sb-link{display:block;font-size:.83rem;color:var(--t3);padding:6px 10px;border-radius:7px;transition:color .12s,background .12s;text-decoration:none;margin-bottom:1px}
+.sb-link:hover{color:var(--tx);background:var(--bg2);text-decoration:none}
+.sb-link.active{color:var(--pl);background:rgba(124,58,237,.12);font-weight:600}
+.sb-sub{font-size:.77rem;color:var(--t4);padding:4px 10px 4px 22px;display:block;border-radius:5px;transition:color .12s}
+.sb-sub:hover{color:var(--t3);text-decoration:none}
+.sb-sub.active{color:var(--pl)}
+
+/* Content */
+main{padding:48px 56px;max-width:860px}
+.doc-section{margin-bottom:72px;scroll-margin-top:72px}
+h1.doc-h1{font-size:2.2rem;font-weight:900;letter-spacing:-.035em;margin-bottom:12px;line-height:1.15}
+h2.doc-h2{font-size:1.55rem;font-weight:800;letter-spacing:-.025em;margin-bottom:12px;margin-top:48px;padding-top:48px;border-top:1px solid var(--bd);line-height:1.2;scroll-margin-top:72px}
+h2.doc-h2:first-child{margin-top:0;padding-top:0;border-top:none}
+h3.doc-h3{font-size:1.1rem;font-weight:700;margin:32px 0 12px;color:var(--tx)}
+h4.doc-h4{font-size:.9rem;font-weight:700;margin:22px 0 8px;color:var(--t2)}
+p{font-size:.93rem;color:var(--t2);line-height:1.8;margin-bottom:14px}
+p:last-child{margin-bottom:0}
+ul,ol{padding-left:22px;margin-bottom:14px}
+li{font-size:.92rem;color:var(--t2);line-height:1.8;margin-bottom:4px}
+li code{font-size:.82em}
+.lead{font-size:1.05rem;color:var(--t3);line-height:1.8;margin-bottom:28px}
+
+/* Callouts */
+.callout{border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;font-size:.88rem;line-height:1.7}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.callout.info{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);color:#93c5fd}
+.callout.tip{background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);color:#6ee7b7}
+.callout.warn{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.2);color:#fcd34d}
+.callout.danger{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);color:#fca5a5}
+
+/* Code blocks */
+.cb{background:var(--bg3);border:1px solid var(--bd2);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--bd);background:var(--bg4)}
+.cb-lang{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t4)}
+.copy-btn{background:none;border:1px solid var(--bd);color:var(--t3);border-radius:6px;padding:4px 11px;font-size:.7rem;cursor:pointer;font-family:inherit;transition:color .15s,border-color .15s}
+.copy-btn:hover{color:var(--tx);border-color:var(--bd2)}
+.cb-body{padding:20px;overflow-x:auto}
+pre{font-family:'Cascadia Code','Fira Code','Menlo',Consolas,monospace;font-size:.815rem;line-height:1.85;white-space:pre}
+.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+.cm{color:var(--t4);font-style:italic}.op{color:#ff7b72}.gnl{color:#34d399}.yw2{color:#fcd34d}
+.pr{color:var(--gnl)}.$ {color:var(--gnl)}
+
+/* OS Tabs */
+.os-tabs{display:flex;gap:4px;margin-bottom:0;border-bottom:1px solid var(--bd);padding-bottom:0}
+.os-tab{padding:9px 18px;border-radius:8px 8px 0 0;font-size:.84rem;font-weight:600;cursor:pointer;border:1px solid transparent;border-bottom:none;color:var(--t3);background:none;transition:all .15s;margin-bottom:-1px;font-family:inherit}
+.os-tab:hover{color:var(--tx)}
+.os-tab.active{color:var(--pl);background:var(--bg3);border-color:var(--bd);border-bottom-color:var(--bg3)}
+.os-panel{display:none}.os-panel.active{display:block}
+.os-content{background:var(--bg3);border:1px solid var(--bd);border-top:none;border-radius:0 12px 12px 12px;padding:28px;margin-bottom:20px}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin-bottom:20px;border-radius:12px;border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:.87rem}
+th{text-align:left;padding:12px 18px;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);font-weight:700;background:var(--bg3);border-bottom:1px solid var(--bd)}
+td{padding:12px 18px;border-bottom:1px solid var(--bd);color:var(--t2);vertical-align:top;line-height:1.65}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(124,58,237,.03)}
+td code{font-size:.78em}
+td:first-child{color:var(--tx);font-weight:500}
+.badge{display:inline-block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.b-pu{background:rgba(124,58,237,.15);color:#c4b5fd;border:1px solid rgba(124,58,237,.25)}
+.b-gn{background:rgba(5,150,105,.12);color:#6ee7b7;border:1px solid rgba(5,150,105,.2)}
+.b-bl{background:rgba(37,99,235,.12);color:#93c5fd;border:1px solid rgba(37,99,235,.2)}
+.b-yw{background:rgba(217,119,6,.1);color:#fcd34d;border:1px solid rgba(217,119,6,.2)}
+.b-rd{background:rgba(220,38,38,.1);color:#fca5a5;border:1px solid rgba(220,38,38,.2)}
+
+/* Step list */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:4px;margin-bottom:20px}
+.step{display:flex;gap:16px;padding:18px 20px;background:var(--bg3);border:1px solid var(--bd);border-radius:10px;transition:border-color .15s}
+.step:hover{border-color:rgba(124,58,237,.25)}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:var(--pl);flex-shrink:0}
+.step-body h4{font-size:.9rem;font-weight:700;margin-bottom:4px;color:var(--tx)}
+.step-body p{font-size:.84rem;color:var(--t3);margin:0}
+
+/* CLI ref */
+.cli-cmd{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;margin-bottom:10px;transition:border-color .15s}
+.cli-cmd:hover{border-color:rgba(124,58,237,.25)}
+.cli-name{font-family:'Cascadia Code','Fira Code',monospace;font-size:.85rem;color:var(--gnl);font-weight:700;margin-bottom:6px}
+.cli-desc{font-size:.83rem;color:var(--t3);margin-bottom:8px}
+.cli-flags{display:flex;flex-direction:column;gap:4px}
+.cli-flag{display:flex;gap:10px;font-size:.8rem}
+.cli-flag code{color:var(--cyl);background:rgba(8,145,178,.1);border-color:rgba(8,145,178,.2);font-size:.78em;white-space:nowrap}
+.cli-flag span{color:var(--t3)}
+
+/* API method badges */
+.method{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:800;font-family:monospace;margin-right:8px}
+.get{background:rgba(5,150,105,.15);color:#34d399;border:1px solid rgba(5,150,105,.25)}
+.post{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.25)}
+.del{background:rgba(220,38,38,.12);color:#fca5a5;border:1px solid rgba(220,38,38,.2)}
+
+/* Gradient text */
+.gt{background:linear-gradient(135deg,var(--pl),var(--pi));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Responsive */
+@media(max-width:900px){
+  .docs-layout{grid-template-columns:1fr}
+  aside{display:none}
+  main{padding:32px 20px}
+  .os-tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">PodX</a>
+  <span class="topnav-ver">v0.1.0 · Alpha</span>
+  <div class="topnav-links">
+    <a href="index.html">Home</a>
+    <a href="#installation">Installation</a>
+    <a href="#cli">CLI</a>
+    <a href="#api-ref">API</a>
+    <a href="#" class="hl">GitHub →</a>
+  </div>
+</nav>
+
+<div class="docs-layout">
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-section">
+    <div class="sb-head">Getting Started</div>
+    <a class="sb-link" href="#introduction">Introduction</a>
+    <a class="sb-link" href="#installation">Installation</a>
+    <a class="sb-sub" href="#install-macos">macOS</a>
+    <a class="sb-sub" href="#install-linux">Linux</a>
+    <a class="sb-sub" href="#install-windows">Windows</a>
+    <a class="sb-link" href="#quickstart">Quick Start</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-head">Setup</div>
+    <a class="sb-link" href="#single-node">Single Node</a>
+    <a class="sb-link" href="#multi-node">Multi-Node Cluster</a>
+    <a class="sb-link" href="#gpu">GPU Acceleration</a>
+    <a class="sb-link" href="#models">Loading Models</a>
+    <a class="sb-link" href="#auth">Authentication</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-head">Reference</div>
+    <a class="sb-link" href="#cli">CLI Reference</a>
+    <a class="sb-link" href="#api-ref">HTTP API</a>
+    <a class="sb-link" href="#config-ref">Configuration</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-head">Internals</div>
+    <a class="sb-link" href="#architecture">Architecture</a>
+    <a class="sb-link" href="#election">Coordinator Election</a>
+    <a class="sb-link" href="#lb">Load Balancing</a>
+    <a class="sb-link" href="#gossip">Gossip Protocol</a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main>
+
+<!-- INTRODUCTION -->
+<div class="doc-section" id="introduction">
+  <h1 class="doc-h1">PodX <span class="gt">Documentation</span></h1>
+  <p class="lead">PodX is a distributed LLM inference cluster written in Rust. Install one binary on multiple devices, and they form a cluster that can run models too large for any single machine.</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">✅</span>
+    <div><strong>OpenAI-compatible.</strong> PodX exposes <code>/v1/chat/completions</code> with streaming SSE. Any app that works with the OpenAI Python SDK, the Node.js client, or curl works with PodX — just change the base URL.</div>
+  </div>
+
+  <h3 class="doc-h3">What PodX does</h3>
+  <ul>
+    <li>Discovers nearby nodes on your LAN via <strong>mDNS</strong> — zero configuration</li>
+    <li>Elects a <strong>coordinator</strong> based on hardware score (RAM × CPU × GPU)</li>
+    <li>Splits model transformer layers across all nodes (<strong>pipeline parallelism</strong>)</li>
+    <li>Routes inference requests through the pipeline over <strong>gRPC</strong></li>
+    <li>Returns streaming tokens via an <strong>OpenAI-compatible HTTP API</strong></li>
+    <li>Shows live cluster state in an embedded <strong>web dashboard</strong></li>
+  </ul>
+
+  <h3 class="doc-h3">Supported platforms</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Architecture</th><th>GPU</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>macOS 12+</td><td>Apple Silicon (arm64), Intel (x86_64)</td><td>Metal</td><td><span class="badge b-gn">Supported</span></td></tr>
+        <tr><td>Linux (Ubuntu 22+, Fedora, Arch)</td><td>x86_64, aarch64</td><td>CUDA 12+</td><td><span class="badge b-gn">Supported</span></td></tr>
+        <tr><td>Windows 11</td><td>x86_64</td><td>CUDA 12+</td><td><span class="badge b-yw">Beta</span></td></tr>
+        <tr><td>Windows (WSL2)</td><td>x86_64</td><td>CUDA via WSL</td><td><span class="badge b-gn">Supported</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- INSTALLATION -->
+<div class="doc-section" id="installation">
+  <h2 class="doc-h2" id="installation">Installation</h2>
+  <p>PodX is distributed as a single binary built from source with Cargo. You'll need the Rust toolchain and a few platform-specific build tools.</p>
+
+  <div class="os-tabs" id="os-tabs">
+    <button class="os-tab active" data-os="macos" onclick="switchOS('macos')">🍎 macOS</button>
+    <button class="os-tab" data-os="linux" onclick="switchOS('linux')">🐧 Linux</button>
+    <button class="os-tab" data-os="windows" onclick="switchOS('windows')">🪟 Windows</button>
+    <button class="os-tab" data-os="wsl" onclick="switchOS('wsl')">🖥️ WSL2</button>
+  </div>
+
+  <!-- macOS -->
+  <div class="os-panel active" id="os-macos">
+    <div class="os-content">
+      <h4 class="doc-h4" id="install-macos">macOS — Apple Silicon &amp; Intel</h4>
+      <p>Tested on macOS 12 Monterey through macOS 15 Sequoia, on both M-series (arm64) and Intel (x86_64) Macs.</p>
+
+      <h4 class="doc-h4">1. Install Rust</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Install the Rust toolchain (includes rustc and cargo)</span>
+<span class="pr">curl</span> --proto <span class="str">'=https'</span> --tlsv1.2 -sSf https://sh.rustup.rs | sh
+<span class="pr">source</span> ~/.cargo/env
+
+<span class="cm"># Verify</span>
+<span class="pr">rustc</span> --version   <span class="cm"># should print: rustc 1.78.0 or later</span>
+<span class="pr">cargo</span> --version</pre></div>
+      </div>
+
+      <h4 class="doc-h4">2. Install build dependencies</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Install Xcode Command Line Tools (includes clang, ar, ld)</span>
+<span class="pr">xcode-select</span> --install
+
+<span class="cm"># Install Homebrew (if not already installed)</span>
+/bin/bash -c <span class="str">"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="cm"># Install protobuf compiler (required for gRPC code generation)</span>
+<span class="pr">brew</span> install protobuf cmake</pre></div>
+      </div>
+
+      <h4 class="doc-h4">3. Clone and build</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>git clone https://github.com/yourname/podx.git
+<span class="pr">cd</span> podx
+
+<span class="cm"># CPU-only build (works on all Macs)</span>
+<span class="pr">cargo</span> build --release
+
+<span class="cm"># Apple Silicon — enable Metal GPU acceleration (M1/M2/M3/M4)</span>
+<span class="pr">cargo</span> build --release --features podx-inference/metal
+
+<span class="cm"># Verify the binary</span>
+./target/release/podx --version</pre></div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <div>On Apple Silicon, always build with <code>--features podx-inference/metal</code> for 5–10× faster inference. Metal offloads all transformer layers to the GPU's Neural Engine.</div>
+      </div>
+
+      <h4 class="doc-h4">4. (Optional) Install to PATH</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Install to ~/.cargo/bin (already on PATH if you used rustup)</span>
+<span class="pr">cargo</span> install --path crates/podx-node
+
+<span class="cm"># Or copy manually</span>
+<span class="pr">cp</span> target/release/podx /usr/local/bin/podx</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Linux -->
+  <div class="os-panel" id="os-linux">
+    <div class="os-content">
+      <h4 class="doc-h4" id="install-linux">Linux — Ubuntu, Fedora, Arch</h4>
+
+      <h4 class="doc-h4">1. Install Rust</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="pr">curl</span> --proto <span class="str">'=https'</span> --tlsv1.2 -sSf https://sh.rustup.rs | sh
+<span class="pr">source</span> ~/.cargo/env</pre></div>
+      </div>
+
+      <h4 class="doc-h4">2. Install build dependencies</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash — Ubuntu / Debian</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>sudo apt update
+sudo apt install -y \
+  build-essential cmake clang \
+  protobuf-compiler libprotobuf-dev \
+  pkg-config libssl-dev</pre></div>
+      </div>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash — Fedora / RHEL / CentOS</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>sudo dnf install -y \
+  gcc gcc-c++ cmake clang \
+  protobuf-compiler protobuf-devel \
+  openssl-devel pkg-config</pre></div>
+      </div>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash — Arch Linux</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>sudo pacman -S --needed \
+  base-devel cmake clang \
+  protobuf openssl pkg-config</pre></div>
+      </div>
+
+      <h4 class="doc-h4">3. (CUDA only) Install NVIDIA CUDA Toolkit</h4>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div>Skip this step if you don't have an NVIDIA GPU or want CPU-only mode.</div>
+      </div>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash — Ubuntu 22.04</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Install CUDA 12 from NVIDIA's repository</span>
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt update
+sudo apt install -y cuda-toolkit-12-3
+
+<span class="cm"># Add to PATH</span>
+<span class="pr">echo</span> <span class="str">'export PATH=/usr/local/cuda/bin:$PATH'</span> >> ~/.bashrc
+<span class="pr">echo</span> <span class="str">'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH'</span> >> ~/.bashrc
+<span class="pr">source</span> ~/.bashrc
+
+<span class="cm"># Verify</span>
+nvcc --version && nvidia-smi</pre></div>
+      </div>
+
+      <h4 class="doc-h4">4. Build PodX</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>git clone https://github.com/yourname/podx.git
+<span class="pr">cd</span> podx
+
+<span class="cm"># CPU-only</span>
+<span class="pr">cargo</span> build --release
+
+<span class="cm"># With CUDA GPU acceleration</span>
+<span class="pr">cargo</span> build --release --features podx-inference/cuda
+
+<span class="cm"># Verify</span>
+./target/release/podx --version</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Windows -->
+  <div class="os-panel" id="os-windows">
+    <div class="os-content">
+      <h4 class="doc-h4" id="install-windows">Windows 11 — Native</h4>
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <div>Native Windows support is in beta. If you hit issues, use <strong>WSL2</strong> (the WSL2 tab) for a smoother experience.</div>
+      </div>
+
+      <h4 class="doc-h4">1. Install Rust</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">powershell</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Using winget</span>
+winget install Rustlang.Rustup
+
+<span class="cm"># Or download the installer from https://rustup.rs and run it</span>
+<span class="cm"># Restart your terminal after installation</span>
+rustc --version</pre></div>
+      </div>
+
+      <h4 class="doc-h4">2. Install Visual Studio Build Tools</h4>
+      <p>Download and install <strong>Visual Studio 2022 Build Tools</strong> from Microsoft. During setup, select <em>"Desktop development with C++"</em>.</p>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">powershell</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Or via winget</span>
+winget install Microsoft.VisualStudio.2022.BuildTools `
+  --override <span class="str">"--add Microsoft.VisualStudio.Workload.VCTools"</span></pre></div>
+      </div>
+
+      <h4 class="doc-h4">3. Install protobuf compiler</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">powershell</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre><span class="cm"># Via winget</span>
+winget install Google.Protobuf
+
+<span class="cm"># Or via Chocolatey</span>
+choco install protoc
+
+<span class="cm"># Verify</span>
+protoc --version</pre></div>
+      </div>
+
+      <h4 class="doc-h4">4. (CUDA only) Install CUDA Toolkit</h4>
+      <p>Download and install <strong>CUDA Toolkit 12.x</strong> from <a href="https://developer.nvidia.com/cuda-downloads" target="_blank">developer.nvidia.com/cuda-downloads</a>. Select Windows → x86_64 → local installer.</p>
+
+      <h4 class="doc-h4">5. Build PodX</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">powershell</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>git clone https://github.com/yourname/podx.git
+<span class="pr">cd</span> podx
+
+<span class="cm"># CPU-only</span>
+cargo build --release
+
+<span class="cm"># With CUDA GPU</span>
+cargo build --release --features podx-inference/cuda
+
+<span class="cm"># Run</span>
+.\target\release\podx.exe start</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WSL2 -->
+  <div class="os-panel" id="os-wsl">
+    <div class="os-content">
+      <h4 class="doc-h4">WSL2 (Windows Subsystem for Linux)</h4>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <div>WSL2 with Ubuntu 22.04 is the easiest path on Windows. mDNS discovery works between WSL nodes on the same machine and can reach native Windows nodes via host IP.</div>
+      </div>
+
+      <h4 class="doc-h4">1. Install WSL2</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">powershell (as Administrator)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>wsl --install -d Ubuntu-22.04
+<span class="cm"># Restart your PC when prompted, then open Ubuntu from Start Menu</span></pre></div>
+      </div>
+
+      <h4 class="doc-h4">2. Inside WSL2 — install dependencies &amp; build</h4>
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">bash (inside WSL2 Ubuntu terminal)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+        <div class="cb-body"><pre>sudo apt update
+sudo apt install -y build-essential cmake clang protobuf-compiler libssl-dev pkg-config
+
+<span class="cm"># Install Rust</span>
+curl --proto <span class="str">'=https'</span> --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+<span class="cm"># Clone and build</span>
+git clone https://github.com/yourname/podx.git
+cd podx
+cargo build --release
+
+<span class="cm"># Start</span>
+./target/release/podx start</pre></div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div>CUDA acceleration works in WSL2 if you install the <strong>CUDA 12 WSL2 driver</strong> from NVIDIA. Then build with <code>--features podx-inference/cuda</code> inside WSL2.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK START -->
+<div class="doc-section" id="quickstart">
+  <h2 class="doc-h2">Quick Start</h2>
+  <p>Get PodX running on a single machine in under two minutes.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Start the node</h4>
+        <p>Run <code>podx start</code>. PodX detects your hardware, starts gRPC on port 9090 and HTTP on port 8080, and begins advertising on mDNS.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Open the dashboard</h4>
+        <p>Navigate to <code>http://localhost:8080/ui</code> in your browser. You should see your node appear as Coordinator with its hardware details.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Load a model</h4>
+        <p>From the Models page, enter the path to a local GGUF file and click Load. Or use the CLI: <code>podx model load --file /path/to/model.gguf</code></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h4>Send your first request</h4>
+        <p>Use the Chat page in the dashboard, or call the API directly with curl or any OpenAI-compatible client.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash — start + first request</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Terminal 1 — start the node</span>
+./podx start
+
+<span class="cm"># Terminal 2 — load a model (adjust path)</span>
+./podx model load --file ~/models/llama-3.2-3b-instruct-q4_k_m.gguf
+
+<span class="cm"># Terminal 2 — send a chat completion request</span>
+curl http://localhost:8080/v1/chat/completions \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"model":"podx-default","messages":[{"role":"user","content":"Hello!"}],"stream":true}'</span></pre></div>
+  </div>
+</div>
+
+<!-- SINGLE NODE -->
+<div class="doc-section" id="single-node">
+  <h2 class="doc-h2">Single Node</h2>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Default ports (gRPC: 9090, HTTP: 8080)</span>
+./podx start
+
+<span class="cm"># Custom ports</span>
+./podx start --port 9091 --http-port 8081
+
+<span class="cm"># Limit inference threads</span>
+./podx start --threads 4
+
+<span class="cm"># Force this node to be coordinator</span>
+./podx start --force-coordinator</pre></div>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div>On a single node, PodX acts as both coordinator and worker. It handles requests end-to-end. The layer range will be <code>L0–N</code> (all layers).</div>
+  </div>
+</div>
+
+<!-- MULTI-NODE -->
+<div class="doc-section" id="multi-node">
+  <h2 class="doc-h2">Multi-Node Cluster</h2>
+  <p>Run <code>podx start</code> on each machine on the same LAN. Nodes find each other via mDNS within seconds.</p>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash — Machine 1 (auto coordinator if highest score)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre>./podx start
+<span class="cm"># → Advertises on mDNS, waits for peers</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash — Machine 2 (discovers Machine 1 automatically)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre>./podx start
+<span class="cm"># → Discovers Machine 1 via mDNS, cluster forms</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash — Manual connect (Tailscale, VPN, different subnet)</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Connect directly by IP when mDNS doesn't reach</span>
+./podx start --connect 100.64.0.1:9090
+./podx start --connect 192.168.2.50:9090</pre></div>
+  </div>
+
+  <h3 class="doc-h3">Distribute a model across all nodes</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Install — computes shard map and pushes layers to each node</span>
+./podx model install --file ~/models/llama-3-70b-q4.gguf
+
+<span class="cm"># Check cluster status</span>
+./podx status</pre></div>
+  </div>
+</div>
+
+<!-- GPU -->
+<div class="doc-section" id="gpu">
+  <h2 class="doc-h2">GPU Acceleration</h2>
+  <p>PodX uses <strong>llama.cpp</strong> under the hood via the <code>llama-cpp-2</code> Rust crate. GPU support is compiled in via Cargo feature flags — no runtime configuration needed.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Feature flag</th><th>Build command</th><th>Detection</th></tr></thead>
+      <tbody>
+        <tr><td>Apple Silicon (M1–M4)</td><td><code>podx-inference/metal</code></td><td><code>cargo build --release --features podx-inference/metal</code></td><td><code>system_profiler SPDisplaysDataType</code></td></tr>
+        <tr><td>NVIDIA (Linux/Windows)</td><td><code>podx-inference/cuda</code></td><td><code>cargo build --release --features podx-inference/cuda</code></td><td><code>nvidia-smi</code></td></tr>
+        <tr><td>CPU (all platforms)</td><td><em>none (default)</em></td><td><code>cargo build --release</code></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span>
+    <div>When GPU support is compiled in, PodX automatically passes <code>n_gpu_layers=9999</code> to llama.cpp — offloading all transformer layers to the GPU. llama.cpp clamps this to the actual layer count, so the value is safe regardless of model size.</div>
+  </div>
+
+  <p>On startup, PodX logs the detected compute backend:</p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">log output</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="gnl">INFO</span> Hardware: ram=16 GB, cores=8, arch=aarch64, os=macos
+<span class="gnl">INFO</span> GPU: Metal detected, vram=10 GB (unified memory)
+<span class="gnl">INFO</span> Compute: Metal GPU (10 GB VRAM)
+<span class="gnl">INFO</span> Hardware score: 4300</pre></div>
+  </div>
+</div>
+
+<!-- MODELS -->
+<div class="doc-section" id="models">
+  <h2 class="doc-h2">Loading Models</h2>
+  <p>PodX uses <strong>GGUF</strong> quantized models — the same format used by llama.cpp and Ollama. Download models from Hugging Face (look for repos with <code>gguf</code> in the name).</p>
+
+  <h3 class="doc-h3">Load on local node</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Load with default context (2048 tokens)</span>
+./podx model load --file /path/to/model.gguf
+
+<span class="cm"># Load with extended context</span>
+./podx model load --file /path/to/model.gguf --n-ctx 4096
+
+<span class="cm"># Limit to 4 inference threads</span>
+./podx model load --file /path/to/model.gguf --threads 4</pre></div>
+  </div>
+
+  <h3 class="doc-h3">Install across cluster</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Distribute shards to all online nodes (run from any node)</span>
+./podx model install --file /path/to/llama-3-70b-q4_k_m.gguf
+
+<span class="cm"># The coordinator computes the shard map and pushes layers to each node</span>
+<span class="cm"># You'll see progress for each node in the logs</span></pre></div>
+  </div>
+
+  <h3 class="doc-h3">Recommended models</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Size</th><th>Min RAM</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Llama 3.2 3B IQ3_M</td><td>1.5 GB</td><td>4 GB</td><td>Fast, single machine</td></tr>
+        <tr><td>Llama 3.2 3B Q4_K_M</td><td>2.0 GB</td><td>4 GB</td><td>Better quality, small</td></tr>
+        <tr><td>Llama 3.1 8B Q4_K_M</td><td>4.7 GB</td><td>8 GB</td><td>Great single-node choice</td></tr>
+        <tr><td>Llama 3.1 70B Q4_K_M</td><td>40 GB</td><td>48 GB cluster</td><td>Requires 3+ machines</td></tr>
+        <tr><td>Mistral 7B Q4_K_M</td><td>4.1 GB</td><td>8 GB</td><td>Fast, efficient</td></tr>
+        <tr><td>Qwen2.5 72B Q4_K_M</td><td>43 GB</td><td>48 GB cluster</td><td>Strong coding model</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="doc-section" id="auth">
+  <h2 class="doc-h2">Authentication</h2>
+  <p>By default, PodX runs without authentication. Enable it by setting <code>require_auth: true</code> via the API or dashboard Settings page.</p>
+
+  <h3 class="doc-h3">Generate an API key</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Generate a Full-access key</span>
+./podx key generate --name my-app --scope Full
+
+<span class="cm"># Chat-only key (inference endpoints only)</span>
+./podx key generate --name frontend --scope Chat
+
+<span class="cm"># Read-only key (status endpoints only)</span>
+./podx key generate --name monitor --scope ReadOnly
+
+<span class="cm"># List all keys</span>
+./podx key list
+
+<span class="cm"># Revoke a key</span>
+./podx key revoke sk-podx-abc123...</pre></div>
+  </div>
+
+  <h3 class="doc-h3">Using a key</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre>curl http://localhost:8080/v1/chat/completions \
+  -H <span class="str">"Authorization: Bearer sk-podx-your-key-here"</span> \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"model":"podx-default","messages":[{"role":"user","content":"Hi"}]}'</span></pre></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Scope</th><th>Allowed endpoints</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge b-pu">Full</span></td><td>All endpoints — config, key management, inference, status</td></tr>
+        <tr><td><span class="badge b-gn">Chat</span></td><td><code>/v1/chat/completions</code> and inference routes only</td></tr>
+        <tr><td><span class="badge b-bl">ReadOnly</span></td><td><code>/api/nodes</code>, <code>/api/metrics</code>, <code>/api/state</code> only</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CLI REFERENCE -->
+<div class="doc-section" id="cli">
+  <h2 class="doc-h2">CLI Reference</h2>
+
+  <h3 class="doc-h3">podx start</h3>
+  <div class="cli-cmd">
+    <div class="cli-name">podx start [OPTIONS]</div>
+    <div class="cli-desc">Start the PodX node. Detects hardware, starts gRPC and HTTP servers, advertises on mDNS, and joins or forms a cluster.</div>
+    <div class="cli-flags">
+      <div class="cli-flag"><code>--port &lt;n&gt;</code> <span>gRPC listen port (default: 9090)</span></div>
+      <div class="cli-flag"><code>--http-port &lt;n&gt;</code> <span>HTTP listen port (default: 8080)</span></div>
+      <div class="cli-flag"><code>--connect &lt;host:port&gt;</code> <span>Connect to a specific peer (disables mDNS for that peer)</span></div>
+      <div class="cli-flag"><code>--force-coordinator</code> <span>Override election and become coordinator regardless of score</span></div>
+      <div class="cli-flag"><code>--threads &lt;n&gt;</code> <span>Number of inference threads (default: physical CPU cores)</span></div>
+    </div>
+  </div>
+
+  <h3 class="doc-h3">podx model</h3>
+  <div class="cli-cmd">
+    <div class="cli-name">podx model load --file &lt;path&gt; [OPTIONS]</div>
+    <div class="cli-desc">Load a GGUF model file on the local node and make it active for inference.</div>
+    <div class="cli-flags">
+      <div class="cli-flag"><code>--file &lt;path&gt;</code> <span>Path to the GGUF file (required)</span></div>
+      <div class="cli-flag"><code>--n-ctx &lt;n&gt;</code> <span>Context window size in tokens (default: 2048)</span></div>
+      <div class="cli-flag"><code>--threads &lt;n&gt;</code> <span>Inference threads for this model</span></div>
+    </div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx model install --file &lt;path&gt; [OPTIONS]</div>
+    <div class="cli-desc">Distribute model shards across all online cluster nodes. Computes the optimal shard map and pushes each node's layer range via gRPC.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx model list</div>
+    <div class="cli-desc">List all models known to the cluster with their metadata.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx model info &lt;model-id&gt;</div>
+    <div class="cli-desc">Show detailed metadata for a model: layer count, quantization, hidden dim, vocab size, file size, checksum.</div>
+  </div>
+
+  <h3 class="doc-h3">podx node</h3>
+  <div class="cli-cmd">
+    <div class="cli-name">podx node list</div>
+    <div class="cli-desc">List all nodes in the cluster with their status, hardware, and assigned layer range.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx node ping &lt;node-id&gt;</div>
+    <div class="cli-desc">Send a heartbeat probe to a specific node and report its response time.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx node kick &lt;node-id&gt;</div>
+    <div class="cli-desc">Remove a node from the cluster state. The node will re-join on next heartbeat.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx node promote &lt;node-id&gt;</div>
+    <div class="cli-desc">Force a node to become coordinator by temporarily inflating its score.</div>
+  </div>
+
+  <h3 class="doc-h3">podx key</h3>
+  <div class="cli-cmd">
+    <div class="cli-name">podx key generate [--name &lt;label&gt;] [--scope &lt;scope&gt;]</div>
+    <div class="cli-desc">Generate a new API key. Scope must be one of: <code>Full</code>, <code>Chat</code>, <code>ReadOnly</code>. The key is shown once — save it immediately.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx key list</div>
+    <div class="cli-desc">List all API keys (masked) with their name, scope, and creation date.</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx key revoke &lt;key&gt;</div>
+    <div class="cli-desc">Permanently revoke an API key. Takes effect immediately on all nodes via gossip.</div>
+  </div>
+
+  <h3 class="doc-h3">podx config</h3>
+  <div class="cli-cmd">
+    <div class="cli-name">podx config show</div>
+    <div class="cli-desc">Show the current cluster configuration (lb_strategy, heartbeat_ms, max_queue, require_auth).</div>
+  </div>
+  <div class="cli-cmd">
+    <div class="cli-name">podx config set &lt;key&gt; &lt;value&gt;</div>
+    <div class="cli-desc">Update a cluster configuration value. Propagates to all nodes via gossip. Changes take effect immediately.</div>
+  </div>
+</div>
+
+<!-- HTTP API -->
+<div class="doc-section" id="api-ref">
+  <h2 class="doc-h2">HTTP API</h2>
+  <p>All endpoints are served from the coordinator's HTTP port (default: <code>8080</code>). Endpoints marked <span class="badge b-pu">Auth</span> require a Bearer token when <code>require_auth</code> is enabled.</p>
+
+  <h3 class="doc-h3">Inference</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="method post">POST</span><code>/v1/chat/completions</code></td>
+          <td><span class="badge b-gn">Chat</span></td>
+          <td>OpenAI-compatible streaming chat. Body: <code>{"model":"podx-default","messages":[...],"stream":true}</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="doc-h3">Cluster Status</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method get">GET</span><code>/api/nodes</code></td><td>—</td><td>List all nodes with full hardware and status info</td></tr>
+        <tr><td><span class="method get">GET</span><code>/api/metrics</code></td><td>—</td><td>High-level cluster health: node count, active model, coordinator</td></tr>
+        <tr><td><span class="method get">GET</span><code>/api/state</code></td><td>—</td><td>Full <code>ClusterState</code> document including shard map</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="doc-h3">Models</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method post">POST</span><code>/api/model/load</code></td><td><span class="badge b-pu">Full</span></td><td>Load a GGUF file on the local node. Body: <code>{"file":"/path","n_ctx":2048}</code></td></tr>
+        <tr><td><span class="method post">POST</span><code>/api/models/install</code></td><td><span class="badge b-pu">Full</span></td><td>Distribute model across cluster. Returns shard assignment per node.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="doc-h3">Configuration</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="method post">POST</span><code>/api/config</code></td>
+          <td><span class="badge b-pu">Full</span></td>
+          <td>Update cluster config. Accepted fields: <code>lb_strategy</code>, <code>heartbeat_ms</code>, <code>max_queue</code>, <code>require_auth</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="doc-h3">API Keys</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:45%">Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method post">POST</span><code>/api/keys</code></td><td><span class="badge b-pu">Full</span></td><td>Create key. Body: <code>{"name":"my-app","scope":"Chat"}</code></td></tr>
+        <tr><td><span class="method get">GET</span><code>/api/keys</code></td><td><span class="badge b-pu">Full</span></td><td>List all keys (values masked to first/last 4 chars)</td></tr>
+        <tr><td><span class="method del">DELETE</span><code>/api/keys/:key</code></td><td><span class="badge b-pu">Full</span></td><td>Revoke a specific key by its full value</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="doc-h3">Web UI</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method get">GET</span><code>/ui</code></td><td>—</td><td>Kubernetes-style cluster dashboard (embedded HTML)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CONFIGURATION -->
+<div class="doc-section" id="config-ref">
+  <h2 class="doc-h2">Configuration Reference</h2>
+  <p>Cluster configuration is stored in <code>ClusterState</code> and replicated to all nodes via gossip. Update it with <code>POST /api/config</code> or <code>podx config set</code>.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>require_auth</code></td><td>bool</td><td><code>false</code></td><td>Enable bearer token authentication on all protected routes</td></tr>
+        <tr><td><code>lb_strategy</code></td><td>string</td><td><code>LeastLoaded</code></td><td>Load-balancing strategy. Options: <code>LeastLoaded</code>, <code>RoundRobin</code>, <code>LatencyAware</code>, <code>Weighted</code>, <code>Random</code></td></tr>
+        <tr><td><code>heartbeat_ms</code></td><td>u64</td><td><code>5000</code></td><td>Heartbeat interval in milliseconds. Lower = faster failure detection, more traffic</td></tr>
+        <tr><td><code>max_queue</code></td><td>u32</td><td><code>32</code></td><td>Maximum concurrent request queue depth per node</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash — update config via API</span><button class="copy-btn" onclick="cp(this)">Copy</button></div>
+    <div class="cb-body"><pre><span class="cm"># Enable auth</span>
+curl -X POST http://localhost:8080/api/config \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"require_auth": true}'</span>
+
+<span class="cm"># Switch to latency-aware load balancing</span>
+curl -X POST http://localhost:8080/api/config \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"lb_strategy": "LatencyAware"}'</span>
+
+<span class="cm"># Increase heartbeat frequency</span>
+curl -X POST http://localhost:8080/api/config \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"heartbeat_ms": 2000}'</span></pre></div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="doc-section" id="architecture">
+  <h2 class="doc-h2">Architecture</h2>
+
+  <h3 class="doc-h3">Crate structure</h3>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text</span></div>
+    <div class="cb-body"><pre>podx/
+├── crates/
+│   ├── <span class="gnl">podx-core</span>        shared types: NodeInfo, HardwareInfo, ModelMeta, ApiKey
+│   ├── <span class="fn">podx-state</span>       ClusterState, gossip engine, shard map, coordinator election
+│   ├── <span class="gnl">podx-inference</span>   llama.cpp backend, hardware detection, Metal/CUDA features
+│   ├── <span class="yw2">podx-network</span>     tonic gRPC server/client, mDNS discovery, tensor serialisation
+│   ├── <span class="fn">podx-api</span>         axum HTTP router, OpenAI handlers, embedded web UI
+│   ├── <span class="yw2">podx-cli</span>         clap CLI commands
+│   └── <span class="fn">podx-node</span>        binary entry point — wires all crates together
+└── proto/
+    └── cluster.proto    gRPC service definition</pre></div>
+  </div>
+
+  <h3 class="doc-h3">Dependency rules</h3>
+  <p>The dependency graph is strictly enforced. No circular dependencies. <code>podx-core</code> has no upstream deps — it is pure types.</p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text</span></div>
+    <div class="cb-body"><pre>podx-core  ←── podx-state  ←── podx-network  ←── podx-api  ←── podx-node
+               ↑                                  ↑              ↑
+           podx-inference ────────────────────────┘          podx-cli</pre></div>
+  </div>
+
+  <h3 class="doc-h3">Key types (podx-core)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Fields</th></tr></thead>
+      <tbody>
+        <tr><td><code>NodeInfo</code></td><td><code>id, grpc_addr, http_addr, hardware, status, layers, queue_depth, avg_latency_ms, served_total</code></td></tr>
+        <tr><td><code>HardwareInfo</code></td><td><code>ram_gb, cpu_cores, cpu_arch, has_gpu, gpu_vram_gb, os</code></td></tr>
+        <tr><td><code>ClusterState</code></td><td><code>coordinator, nodes, shard_map, active_model, version, require_auth, lb_strategy, heartbeat_ms, max_queue</code></td></tr>
+        <tr><td><code>ModelMeta</code></td><td><code>id, filename, file_path, layer_count, hidden_dim, vocab_size, quant, size_bytes, checksum</code></td></tr>
+        <tr><td><code>ApiKey</code></td><td><code>key, name, scope (Full|Chat|ReadOnly), created_ms</code></td></tr>
+        <tr><td><code>LBStrategy</code></td><td><code>LeastLoaded | RoundRobin | LatencyAware | Weighted | Random</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ELECTION -->
+<div class="doc-section" id="election">
+  <h2 class="doc-h2">Coordinator Election</h2>
+  <p>When a PodX cluster forms, one node becomes the <strong>coordinator</strong>. The coordinator receives all inference requests, maintains the shard map, and routes the pipeline.</p>
+  <p>Election is score-based and deterministic:</p>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">rust — scoring formula</span></div>
+    <div class="cb-body"><pre><span class="kw">fn</span> <span class="fn">score</span>(hw: &amp;HardwareInfo) -&gt; u64 {
+    hw.ram_gb * <span class="num">100</span>
+    + hw.cpu_cores <span class="kw">as</span> u64 * <span class="num">50</span>
+    + hw.gpu_vram_gb.unwrap_or(<span class="num">0</span>) * <span class="num">200</span>
+    + <span class="kw">if</span> hw.os == <span class="str">"macos"</span> { <span class="num">2000</span> } <span class="kw">else</span> { <span class="num">0</span> }
+}</pre></div>
+  </div>
+  <p>Every node broadcasts its score via gossip. The highest score wins. Ties are broken by lexicographic node ID. If the coordinator goes offline, the cluster re-elects instantly without any operator action.</p>
+</div>
+
+<!-- LB -->
+<div class="doc-section" id="lb">
+  <h2 class="doc-h2">Load Balancing</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Strategy</th><th>Behavior</th><th>Best for</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge b-pu">LeastLoaded</span></td><td>Route to node with fewest queued requests</td><td>General use (default)</td></tr>
+        <tr><td><span class="badge b-bl">RoundRobin</span></td><td>Distribute in strict rotation</td><td>Uniform hardware</td></tr>
+        <tr><td><span class="badge b-gn">LatencyAware</span></td><td>Prefer nodes with lowest recent avg latency</td><td>Latency-sensitive apps</td></tr>
+        <tr><td><span class="badge b-yw">Weighted</span></td><td>Probability ∝ hardware score</td><td>Mixed hardware clusters</td></tr>
+        <tr><td><code>Random</code></td><td>Random available node</td><td>Testing, even distribution</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Strategies can be changed live without restarting any node. The change propagates via gossip and takes effect on the next request.</p>
+</div>
+
+<!-- GOSSIP -->
+<div class="doc-section" id="gossip">
+  <h2 class="doc-h2">Gossip Protocol</h2>
+  <p>PodX uses a simple push gossip protocol to keep <code>ClusterState</code> consistent across all nodes.</p>
+  <ul>
+    <li>Every node holds a complete, versioned copy of <code>ClusterState</code></li>
+    <li>On a ticker (default: 3s), each node pushes its current state to all known peers via the <code>Gossip</code> gRPC RPC</li>
+    <li>A peer accepts an incoming state only if its version is <strong>higher</strong> than its local copy</li>
+    <li>State changes (node joins, model loads, config updates) propagate to the full cluster in <code>O(hops × tick_interval)</code></li>
+    <li>No central server, no Raft, no Paxos — simple and crash-tolerant</li>
+  </ul>
+</div>
+
+</main>
+</div>
+
+<script>
+// OS tab switching
+function switchOS(os) {
+  document.querySelectorAll('.os-tab').forEach(t => t.classList.toggle('active', t.dataset.os === os));
+  document.querySelectorAll('.os-panel').forEach(p => p.classList.toggle('active', p.id === 'os-' + os));
+}
+
+// Copy code blocks
+function cp(btn) {
+  const pre = btn.closest('.cb').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+// Sidebar active section tracking
+const sections = document.querySelectorAll('.doc-section');
+const sbLinks = document.querySelectorAll('.sb-link, .sb-sub');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      sbLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+    }
+  });
+}, {rootMargin: '-20% 0px -70% 0px'});
+sections.forEach(s => obs.observe(s));
+// Also observe h2s for sidebar
+document.querySelectorAll('h2.doc-h2[id]').forEach(h => obs.observe(h));
+</script>
+</body>
+</html>

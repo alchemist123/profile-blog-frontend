@@ -10,7 +10,8 @@ const Navbar = () => {
 
     const navLinks = [
         { name: "Home", path: "/" },
-        { name: "Logs", path: "/blog" }
+        { name: "PodX", path: "/podx" },
+        { name: "Logs", path: "/blog" },
     ];
 
     return (
@@ -22,16 +23,22 @@ const Navbar = () => {
 
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-6">
-                    {navLinks.map((link) => (
+                    {navLinks.map((link) => {
+                        const active =
+                            link.path === "/podx"
+                                ? location.pathname.startsWith("/podx")
+                                : location.pathname === link.path;
+                        return (
                         <Link
                             key={link.path}
                             to={link.path}
-                            className={`text-sm font-mono uppercase tracking-widest transition-colors hover:text-emerald-400 ${location.pathname === link.path ? "text-emerald-500" : "text-slate-500"
+                            className={`text-sm font-mono uppercase tracking-widest transition-colors hover:text-emerald-400 ${active ? "text-emerald-500" : "text-slate-500"
                                 }`}
                         >
                             {link.name}
                         </Link>
-                    ))}
+                        );
+                    })}
                     <div className="h-4 w-[1px] bg-slate-800" />
                     <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/5" asChild>
                         <a href="https://github.com/alchemist123" target="_blank" rel="noopener noreferrer" title="GitHub">
@@ -91,17 +98,23 @@ const Navbar = () => {
                                     </a>
                                 </div>
                                 <div className="flex flex-col gap-4">
-                                {navLinks.map((link) => (
+                                {navLinks.map((link) => {
+                                    const active =
+                                        link.path === "/podx"
+                                            ? location.pathname.startsWith("/podx")
+                                            : location.pathname === link.path;
+                                    return (
                                     <Link
                                         key={link.path}
                                         to={link.path}
                                         onClick={() => setIsOpen(false)}
-                                        className={`text-lg font-mono tracking-widest uppercase flex items-center gap-3 p-3 rounded-lg ${location.pathname === link.path ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 hover:bg-white/5"
+                                        className={`text-lg font-mono tracking-widest uppercase flex items-center gap-3 p-3 rounded-lg ${active ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 hover:bg-white/5"
                                             }`}
                                     >
                                         <span className="text-slate-600">~/</span> {link.name}
                                     </Link>
-                                ))}
+                                    );
+                                })}
                                 </div>
                             </div>
                         </SheetContent>
