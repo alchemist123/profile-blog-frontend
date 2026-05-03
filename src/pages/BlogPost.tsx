@@ -154,7 +154,7 @@ const BlogPost = () => {
                 iframe.setAttribute("title", "HTML block");
                 iframe.sandbox.add("allow-scripts");
                 iframe.srcdoc = html;
-                iframe.className = "w-full min-h-[320px] border-0 rounded-lg my-4 bg-white dark:bg-zinc-900";
+                iframe.className = "w-full min-h-[320px] border-0 rounded-lg my-4 bg-white";
                 iframe.style.minHeight = "320px";
                 div.appendChild(iframe);
             }
@@ -228,6 +228,7 @@ const BlogPost = () => {
 
     if (loading || !blog) {
         return (
+            <div className="min-h-[calc(100vh-4rem)] w-full bg-white text-zinc-900 [color-scheme:light]">
             <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                 <Skeleton className="h-10 w-32 mb-8 rounded-md" />
                 <div className="space-y-4 mb-8">
@@ -251,7 +252,7 @@ const BlogPost = () => {
                     <Skeleton className="h-4 w-full rounded" />
                     <Skeleton className="h-4 w-2/3 rounded" />
                 </div>
-                <div className="mt-12 pt-8 border-t flex flex-wrap items-center gap-6">
+                <div className="mt-12 pt-8 border-t border-zinc-200 flex flex-wrap items-center gap-6">
                     <Skeleton className="h-9 w-20 rounded-md" />
                     <div className="flex gap-2">
                         <Skeleton className="h-8 w-8 rounded-md" />
@@ -259,11 +260,12 @@ const BlogPost = () => {
                         <Skeleton className="h-8 w-8 rounded-md" />
                     </div>
                 </div>
-                <div className="mt-10 pt-8 border-t space-y-4">
+                <div className="mt-10 pt-8 border-t border-zinc-200 space-y-4">
                     <Skeleton className="h-6 w-28 rounded" />
                     <Skeleton className="h-24 w-full rounded-md" />
                     <Skeleton className="h-10 w-24 rounded-md" />
                 </div>
+            </div>
             </div>
         );
     }
@@ -271,15 +273,16 @@ const BlogPost = () => {
     const tags = Array.isArray(blog.tags) ? blog.tags : [];
 
     return (
+        <div className="min-h-[calc(100vh-4rem)] w-full bg-white text-zinc-900 [color-scheme:light]">
         <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <Button variant="ghost" className="mb-8 pl-0 hover:pl-2 transition-all" asChild>
+            <Button variant="ghost" className="mb-8 pl-0 hover:pl-2 transition-all text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100" asChild>
                 <Link to="/blog">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
                 </Link>
             </Button>
 
-            <article className="prose prose-zinc dark:prose-invert lg:prose-xl max-w-none">
-                <div className="space-y-4 mb-8">
+            <article className="prose prose-zinc lg:prose-xl max-w-none prose-headings:!text-zinc-900 prose-p:text-zinc-800 prose-li:text-zinc-800 prose-strong:text-zinc-900">
+                <div className="space-y-4 mb-8 not-prose">
                     <div className="flex flex-wrap gap-2">
                         {tags.map((tag) => (
                             <Badge key={tag} variant="secondary">
@@ -287,7 +290,7 @@ const BlogPost = () => {
                             </Badge>
                         ))}
                     </div>
-                    <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
+                    <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 lg:text-5xl mb-4">
                         {blog.title}
                     </h1>
                     <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
@@ -333,13 +336,13 @@ const BlogPost = () => {
                                     title="HTML block"
                                     srcDoc={block.content ?? ""}
                                     sandbox="allow-scripts"
-                                    className="w-full min-h-[320px] border-0 rounded-lg my-4 bg-white dark:bg-zinc-900 block"
+                                    className="w-full min-h-[320px] border-0 rounded-lg my-4 bg-white block"
                                     style={{ minHeight: "320px" }}
                                 />
                             ) : (
                                 <div
                                     key={i}
-                                    className="blog-content-block prose prose-zinc dark:prose-invert max-w-none [&_*]:max-w-none"
+                                    className="blog-content-block prose prose-zinc max-w-none [&_*]:max-w-none"
                                     dangerouslySetInnerHTML={{ __html: block.content ?? "" }}
                                 />
                             )
@@ -355,7 +358,7 @@ const BlogPost = () => {
             </article>
 
             {/* Like & Share */}
-            <div className="mt-12 pt-8 border-t flex flex-wrap items-center gap-6">
+            <div className="mt-12 pt-8 border-t border-zinc-200 flex flex-wrap items-center gap-6">
                 <Button
                     variant="ghost"
                     size="sm"
@@ -385,7 +388,7 @@ const BlogPost = () => {
             </div>
 
             {/* Comments */}
-            <div className="mt-10 pt-8 border-t">
+            <div className="mt-10 pt-8 border-t border-zinc-200">
                 <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
                     <MessageCircle className="h-5 w-5" />
                     Comments {comments.length > 0 && `(${comments.length})`}
@@ -455,6 +458,7 @@ const BlogPost = () => {
                     ))}
                 </ul>
             </div>
+        </div>
         </div>
     );
 };
