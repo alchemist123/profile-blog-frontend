@@ -79,7 +79,7 @@ export function HtmlBlockView({ node, updateAttributes }: ReactNodeViewProps) {
                                     ref={iframeRef}
                                     title="HTML block preview"
                                     srcDoc={srcDocContent}
-                                    sandbox="allow-scripts allow-same-origin allow-popups"
+                                    sandbox="allow-scripts"
                                     className="html-block-iframe w-full h-full border-0"
                                 />
                             </div>

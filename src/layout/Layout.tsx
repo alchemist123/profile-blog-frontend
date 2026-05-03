@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { Menu, Github, Linkedin, Mail } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -69,6 +69,12 @@ const Navbar = () => {
                             </Button>
                         </SheetTrigger>
                         <SheetContent className="bg-[#0B1015] border-l border-white/5">
+                            <SheetHeader className="sr-only">
+                                <SheetTitle>Menu</SheetTitle>
+                                <SheetDescription>
+                                    Navigation links and social profiles for this site.
+                                </SheetDescription>
+                            </SheetHeader>
                             <div className="flex flex-col gap-6 mt-8">
                                 <div className="flex items-center gap-4 border-b border-white/5 pb-6">
                                     <a

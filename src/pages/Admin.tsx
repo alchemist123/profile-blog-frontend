@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2, Plus, LogOut, Edit } from "lucide-react";
 import Editor from "@/components/ui/editor";
@@ -126,6 +126,9 @@ const Admin = () => {
                             <SheetContent>
                                 <SheetHeader>
                                     <SheetTitle>Publishing Steps</SheetTitle>
+                                    <SheetDescription>
+                                        Add summary, cover image, and tags before publishing your story.
+                                    </SheetDescription>
                                 </SheetHeader>
                                 <div className="grid gap-6 py-6">
                                     <div className="space-y-2">
