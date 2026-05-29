@@ -175,19 +175,35 @@ const Home = () => {
                                 Connect devices over LAN, split transformer layers, and run{" "}
                                 <strong className="text-slate-200">70B+ models</strong> privately with an{" "}
                                 <strong className="text-slate-200">OpenAI-compatible API</strong>. One binary,
-                                mDNS discovery, Metal &amp; CUDA — no cloud required.
+                                mDNS discovery, Metal &amp; CUDA — no cloud, no cost.
                             </p>
-                            <ul className="space-y-2 mb-8 text-sm text-slate-500 font-mono">
+                            <ul className="space-y-2.5 mb-6 text-sm text-slate-500 font-mono">
                                 <li className="flex items-center gap-2">
-                                    <span className="text-emerald-500">▸</span> Pipeline parallelism across your machines
+                                    <span className="text-emerald-500">▸</span> Pipeline parallelism — transformer layers split across nodes
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <span className="text-emerald-500">▸</span> Drop-in <code className="text-violet-400/90">/v1/chat/completions</code>
+                                    <span className="text-emerald-500">▸</span> Drop-in <code className="text-violet-400/90">/v1/chat/completions</code> with streaming SSE
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <span className="text-emerald-500">▸</span> Rust · llama.cpp · gossip cluster state
+                                    <span className="text-emerald-500">▸</span> Distributed KV cache · speculative decoding · 2–4× throughput
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-emerald-500">▸</span> Rust · llama.cpp · gossip cluster state · score-based election
                                 </li>
                             </ul>
+                            <div className="grid grid-cols-4 gap-3 mb-8">
+                                {[
+                                    ["70B+", "Model class", "text-violet-400"],
+                                    ["$0", "Per token", "text-emerald-400"],
+                                    ["~5 s", "Cluster up", "text-cyan-400"],
+                                    ["1", "Binary", "text-violet-400"],
+                                ].map(([v, l, c]) => (
+                                    <div key={l} className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-3 text-center">
+                                        <span className={`block text-xl font-black tabular-nums ${c}`}>{v}</span>
+                                        <span className="block text-[10px] uppercase tracking-widest text-slate-600 mt-1 font-mono">{l}</span>
+                                    </div>
+                                ))}
+                            </div>
                             <div className="flex flex-wrap gap-4">
                                 <Button
                                     size="lg"

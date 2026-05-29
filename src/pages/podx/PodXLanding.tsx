@@ -176,6 +176,9 @@ export default function PodXLanding() {
                     <a href="#features" className="text-[0.88rem] px-3.5 py-1.5 rounded-lg text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#161b22] transition-colors">
                         Features
                     </a>
+                    <a href="#performance" className="text-[0.88rem] px-3.5 py-1.5 rounded-lg text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#161b22] transition-colors">
+                        Performance
+                    </a>
                     <a href="#compare" className="text-[0.88rem] px-3.5 py-1.5 rounded-lg text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#161b22] transition-colors">
                         vs Cloud
                     </a>
@@ -195,74 +198,128 @@ export default function PodXLanding() {
             </nav>
 
             {/* Hero */}
-            <section className="relative min-h-[calc(100vh-62px)] flex items-center pt-4 pb-20 overflow-hidden">
+            <section className="relative min-h-[calc(100vh-62px)] flex flex-col justify-center pt-6 pb-16 md:pb-24 overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none">
                     <HeroNetworkCanvas />
                 </div>
                 <div
-                    className="absolute inset-0 opacity-25 pointer-events-none"
+                    className="absolute inset-0 opacity-[0.22] pointer-events-none"
                     style={{
-                        backgroundImage: `linear-gradient(rgba(33,38,45,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(33,38,45,.6) 1px,transparent 1px)`,
+                        backgroundImage: `linear-gradient(rgba(33,38,45,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(33,38,45,.55) 1px,transparent 1px)`,
                         backgroundSize: "72px 72px",
-                        maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%,#000 40%,transparent 100%)",
+                        maskImage: "radial-gradient(ellipse 85% 75% at 50% 38%,#000 35%,transparent 100%)",
                     }}
                 />
-                <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[radial-gradient(ellipse,rgba(124,58,237,.12)_0%,transparent_70%)] pointer-events-none" />
+                <div className="absolute top-[18%] left-1/2 -translate-x-1/2 w-[min(780px,90vw)] h-[min(420px,45vh)] bg-[radial-gradient(ellipse,rgba(124,58,237,.16)_0%,transparent_68%)] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050709] to-transparent pointer-events-none z-[1]" />
 
                 <div className="relative z-[2] max-w-[1140px] mx-auto px-7 w-full">
-                    <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-16 items-center py-16 lg:py-24">
-                        <div>
-                            <div className="inline-flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.1em] uppercase text-emerald-400 mb-6">
-                                <span className="w-[7px] h-[7px] rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />
-                                Open Source · Alpha v0.1
+                    <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-12 lg:gap-16 xl:gap-20 items-center py-12 lg:py-20">
+                        <div className="max-w-[560px] lg:max-w-none">
+                            <div className="flex flex-wrap items-center gap-2 mb-5">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-3.5 py-1.5 text-[0.68rem] font-bold tracking-[0.12em] uppercase text-emerald-400/95">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
+                                    Open source · Alpha v0.1
+                                </span>
+                                <span className="inline-flex items-center rounded-full border border-[#30363d] bg-[#0d1117]/80 px-3.5 py-1.5 text-[0.68rem] font-semibold tracking-wide text-[#8b949e]">
+                                    Distributed inference
+                                </span>
                             </div>
-                            <h1 className="text-[clamp(2.5rem,4.8vw,3.8rem)] font-black tracking-tight leading-[1.05] mb-6 text-[#e6edf3]">
-                                Run 70B models on your own hardware.
-                                <br />
-                                <span className={gradientText}>Together.</span>
-                            </h1>
-                            <p className="text-[1.08rem] text-[#8b949e] leading-relaxed mb-10 max-w-[480px]">
-                                PodX connects your devices over LAN, splits transformer layers across them, and serves LLMs with a{" "}
-                                <strong className="text-[#c9d1d9]">drop-in OpenAI API</strong>. Private. Fast. Free.
+                            <p className="text-[0.8rem] font-medium tracking-wide text-[#64748b] mb-4 md:mb-5">
+                                Self-hosted · Multi-device · OpenAI-compatible API
                             </p>
-                            <div className="flex flex-wrap gap-3 mb-12">
+                            <h1 className="font-black tracking-[-0.035em] leading-[1.06] mb-6 md:mb-7">
+                                <span className="block text-[clamp(2rem,4.2vw,3.35rem)] text-[#f8fafc]">
+                                    Run 70B models on your own hardware.
+                                </span>
+                                <span className={`block mt-2 md:mt-3 text-[clamp(2.35rem,5vw,4rem)] ${gradientText}`}>Together.</span>
+                            </h1>
+                            <p className="text-[1.06rem] md:text-[1.12rem] text-[#94a3b8] leading-relaxed mb-6 max-w-[520px]">
+                                PodX pools laptops, desktops, and workstations on your LAN into one inference fabric — pipeline parallelism, zero-config discovery, and a{" "}
+                                <strong className="font-semibold text-[#e2e8f0]">drop-in OpenAI surface</strong>{" "}
+                                so your existing SDK code keeps working.
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-8 md:mb-9">
+                                {["GGUF models", "Streaming SSE", "mDNS peers", "No cloud bill"].map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className="inline-flex items-center rounded-lg border border-[#30363d] bg-[#0d1117]/65 px-2.5 py-1 text-[0.72rem] font-medium text-[#a1a1aa]"
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 mb-10 md:mb-11">
                                 <Link
                                     to="/podx/docs#installation"
-                                    className="inline-flex items-center gap-2 bg-gradient-to-br from-[#7c3aed] to-[#5b21b6] text-white font-bold px-6 py-3.5 rounded-[10px] text-[0.95rem] shadow-[0_0_32px_rgba(124,58,237,0.35)] hover:opacity-90 hover:-translate-y-0.5 transition-all"
+                                    className="inline-flex items-center justify-center gap-2 min-h-[48px] px-7 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#5b21b6] text-white font-bold text-[0.95rem] shadow-[0_0_40px_rgba(124,58,237,0.38)] hover:opacity-92 hover:-translate-y-0.5 transition-all"
                                 >
-                                    Get Started →
+                                    Get started
+                                    <span aria-hidden className="text-lg leading-none">
+                                        →
+                                    </span>
                                 </Link>
                                 <Link
                                     to="/podx/docs"
-                                    className="inline-flex items-center gap-2 bg-[#161b22] text-[#c9d1d9] font-semibold px-6 py-3.5 rounded-[10px] text-[0.95rem] border border-[#30363d] hover:border-violet-400/50 hover:text-white transition-all"
+                                    className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-xl bg-[#161b22] text-[#e6edf3] font-semibold text-[0.95rem] border border-[#30363d] hover:border-violet-400/45 hover:bg-[#1c2128] transition-all"
                                 >
-                                    Read Docs
+                                    Documentation
                                 </Link>
+                                <a
+                                    href="#how"
+                                    className="inline-flex items-center justify-center min-h-[48px] px-2 text-[0.9rem] font-semibold text-[#a78bfa] hover:text-violet-300 transition-colors"
+                                >
+                                    How it works
+                                </a>
                             </div>
-                            <div className="flex flex-wrap gap-9">
-                                {[
-                                    ["70B+", "Model size"],
-                                    ["$0", "Per token"],
-                                    ["100%", "Private"],
-                                    ["1", "Binary"],
-                                ].map(([v, l]) => (
-                                    <div key={l}>
-                                        <span className="block text-[1.75rem] font-black text-[#a78bfa] leading-none">{v}</span>
-                                        <span className="block text-[0.68rem] text-[#484f58] uppercase tracking-[0.09em] mt-1">{l}</span>
-                                    </div>
-                                ))}
+                            <div className="rounded-2xl border border-[#21262d] bg-[#0d1117]/55 backdrop-blur-md px-5 py-5 sm:px-7 sm:py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#64748b] mb-4">At a glance</p>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-6 sm:gap-8">
+                                    {[
+                                        ["70B+", "Model class", "violet"],
+                                        ["$0", "Per token", "emerald"],
+                                        ["100%", "On your LAN", "cyan"],
+                                        ["1", "Binary to run", "violet"],
+                                    ].map(([v, l, tone]) => (
+                                        <div key={l} className="text-left">
+                                            <span
+                                                className={`block text-[1.65rem] sm:text-[1.85rem] font-black tabular-nums leading-none tracking-tight ${
+                                                    tone === "emerald"
+                                                        ? "text-emerald-400"
+                                                        : tone === "cyan"
+                                                          ? "text-cyan-400"
+                                                          : "text-[#a78bfa]"
+                                                }`}
+                                            >
+                                                {v}
+                                            </span>
+                                            <span className="mt-1.5 block text-[0.66rem] text-[#64748b] uppercase tracking-[0.1em] font-semibold">{l}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                        <div className="rounded-2xl border border-[#30363d] bg-[#0d1117] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.7)]">
-                            <div className="bg-[#161b22] px-[18px] py-3 flex items-center gap-2 border-b border-[#21262d]">
-                                <span className="w-[13px] h-[13px] rounded-full bg-[#ff5f57]" />
-                                <span className="w-[13px] h-[13px] rounded-full bg-[#ffbd2e]" />
-                                <span className="w-[13px] h-[13px] rounded-full bg-[#28c840]" />
-                                <span className="mx-auto text-[0.73rem] text-[#484f58] font-sans">podx — zsh</span>
+                        <div className="relative">
+                            <div className="absolute -inset-1 rounded-[18px] bg-gradient-to-br from-violet-600/25 via-transparent to-cyan-600/20 blur-xl opacity-70 pointer-events-none" aria-hidden />
+                            <div className="relative rounded-2xl border border-[#30363d] bg-[#0d1117] overflow-hidden shadow-[0_36px_100px_-20px_rgba(0,0,0,0.85)] ring-1 ring-white/[0.06]">
+                                <div className="flex items-center justify-between gap-3 bg-[#161b22] px-[18px] py-3 border-b border-[#21262d]">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-[13px] h-[13px] rounded-full bg-[#ff5f57]" />
+                                        <span className="w-[13px] h-[13px] rounded-full bg-[#ffbd2e]" />
+                                        <span className="w-[13px] h-[13px] rounded-full bg-[#28c840]" />
+                                    </div>
+                                    <span className="text-[0.73rem] text-[#484f58] font-sans truncate">podx — zsh</span>
+                                    <span className="text-[0.62rem] font-semibold uppercase tracking-wider text-emerald-400/90 shrink-0 hidden sm:inline">
+                                        Live
+                                    </span>
+                                </div>
+                                <div className="p-5 md:p-6 lg:p-7">
+                                    <PodXTerminal />
+                                </div>
                             </div>
-                            <div className="p-5 md:p-6">
-                                <PodXTerminal />
-                            </div>
+                            <p className="mt-4 text-center text-[0.72rem] text-[#64748b]">
+                                Same binary on every node — <span className="text-[#8b949e]">start once per machine, cluster forms automatically.</span>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -668,6 +725,107 @@ export default function PodXLanding() {
                 </div>
             </section>
 
+            {/* Performance benchmarks */}
+            <section id="performance" className="relative py-24 md:py-36 scroll-mt-28 overflow-hidden bg-[#0d1117]">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(52,211,153,0.15),transparent)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_45%_35%_at_90%_80%,rgba(124,58,237,0.1),transparent)]" />
+                <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] [background-size:36px_36px]" />
+                <div className="relative max-w-[1140px] mx-auto px-7">
+                    <div className="flex flex-col lg:flex-row lg:items-stretch gap-10 lg:gap-14 mb-16 md:mb-20">
+                        <div className="lg:w-[46%] shrink-0 flex flex-col justify-center">
+                            <span className="inline-flex items-center gap-2 w-fit text-[0.68rem] font-bold tracking-[0.14em] uppercase text-[#a5f3fc] bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-1.5 rounded-full mb-6">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]" aria-hidden />
+                                Performance
+                            </span>
+                            <h2 className="text-[clamp(2rem,4vw,3.15rem)] font-black tracking-[-0.03em] leading-[1.08] mb-5">
+                                <span className="block text-[#f4f4f5]">Flat O(1) decode.</span>
+                                <span className={`block mt-1 ${gradientText}`}>2–4× with speculation.</span>
+                            </h2>
+                            <p className="text-[1.05rem] text-[#94a3b8] leading-relaxed mb-6">
+                                PodX's distributed KV cache keeps per-token latency flat regardless of context length. Pair it with speculative decoding and throughput multiplies 2–4× with no extra hardware.
+                            </p>
+                            <div className="flex flex-wrap gap-3 text-[0.78rem] text-[#64748b]">
+                                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#30363d] bg-[#050709]/60 px-3 py-2">
+                                    <span className="text-emerald-400/95" aria-hidden>✦</span>
+                                    KV cache per node — O(1) per step
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#30363d] bg-[#050709]/60 px-3 py-2">
+                                    <span className="text-violet-400/95" aria-hidden>⚡</span>
+                                    Draft model verifies N tokens in 1 pass
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0 rounded-3xl border border-[#21262d] bg-gradient-to-br from-[#0d1117] via-[#0a1610] to-[#0d1117] p-1 shadow-[0_0_0_1px_rgba(52,211,153,0.06),0_28px_90px_-28px_rgba(0,0,0,0.75)]">
+                            <div className="rounded-[22px] bg-[#0d1117]/95 p-6 sm:p-8 border border-emerald-500/10 h-full">
+                                <p className="text-[0.72rem] font-bold uppercase tracking-[0.16em] text-[#64748b] mb-5">Two-node cluster · Llama 3.2 3B (Mac + Linux)</p>
+                                <div className="grid grid-cols-3 gap-3 mb-6">
+                                    {[
+                                        ["Prefill", "~4 s", "First-token latency", "text-[#94a3b8]"],
+                                        ["Decode", "1.5–2 tok/s", "With KV cache", "text-emerald-400"],
+                                        ["+ Speculative", "3–5 tok/s", "2–3× multiplier", "text-violet-400"],
+                                    ].map(([label, value, note, color]) => (
+                                        <div key={label} className="rounded-xl border border-[#21262d] bg-[#050709]/80 p-4 text-center">
+                                            <p className="text-[0.62rem] font-bold uppercase tracking-widest text-[#484f58] mb-1">{label}</p>
+                                            <p className={`text-[1.15rem] font-black tabular-nums ${color}`}>{value}</p>
+                                            <p className="text-[0.62rem] text-[#64748b] mt-1">{note}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-[0.72rem] font-bold uppercase tracking-[0.16em] text-[#64748b] mb-3">Decode latency vs context length</p>
+                                <div className="space-y-3">
+                                    {[
+                                        { label: "No KV cache", token1: "500ms", token35: "9 500ms", bar: "w-full", color: "bg-red-500/70", note: "O(N) — grows with every token" },
+                                        { label: "With KV cache", token1: "500ms", token35: "400ms", bar: "w-[12%]", color: "bg-emerald-500/80", note: "O(1) — flat regardless of length" },
+                                    ].map((row) => (
+                                        <div key={row.label}>
+                                            <div className="flex justify-between text-[0.7rem] mb-1">
+                                                <span className="text-[#8b949e] font-medium">{row.label}</span>
+                                                <span className="font-mono text-[#64748b]">token 35 → {row.token35}</span>
+                                            </div>
+                                            <div className="h-2 rounded-full bg-[#161b22] border border-[#21262d] overflow-hidden">
+                                                <div className={`h-full ${row.bar} ${row.color} rounded-full`} />
+                                            </div>
+                                            <p className="mt-1 text-[0.65rem] text-[#475569]">{row.note}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="mt-5 pt-4 border-t border-[#21262d] text-[0.75rem] text-[#8b949e] leading-relaxed">
+                                    Single-node Mac baseline: ~1.2 tok/s. Two-node cluster exceeds this — the crossover point where distribution pays off.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#21262d] overflow-x-auto bg-[#0d1117]/95 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.03]">
+                        <table className="w-full border-collapse min-w-[640px]">
+                            <thead>
+                                <tr className="bg-[#161b22] text-[0.7rem] uppercase tracking-wider text-[#484f58]">
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d]">Metric</th>
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d] text-red-400/80">No KV Cache</th>
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d] text-emerald-400">With KV Cache</th>
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d] text-violet-400">+ Speculative</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-[0.88rem]">
+                                {[
+                                    ["Decode latency scaling", "O(N) per token", "O(1) per token", "O(1) per token"],
+                                    ["Throughput", "baseline", "1×", "2–4×"],
+                                    ["Worker time @ token 35", "~9 500 ms", "~400 ms", "~400 ms"],
+                                    ["Coordinator embed @ token 35", "~10 000 ms", "~50 ms", "~50 ms"],
+                                ].map(([metric, no, kv, spec]) => (
+                                    <tr key={metric as string} className="hover:bg-[#161b22]/50 border-b border-[#21262d] last:border-0">
+                                        <td className="py-4 px-6 text-[#c9d1d9] font-medium">{metric}</td>
+                                        <td className="py-4 px-6 text-red-400/80 font-mono text-[0.83rem]">{no}</td>
+                                        <td className="py-4 px-6 text-emerald-400 font-bold font-mono text-[0.83rem]">{kv}</td>
+                                        <td className="py-4 px-6 text-violet-400 font-bold font-mono text-[0.83rem]">{spec}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             {/* PodX vs cloud — drop-in code + comparison table */}
             <section id="compare" className="relative py-24 md:py-36 scroll-mt-28 overflow-hidden bg-[#050709]">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_20%_15%,rgba(124,58,237,0.14),transparent)]" />
@@ -750,26 +908,32 @@ export default function PodXLanding() {
 
                     <p className="text-[0.72rem] font-bold uppercase tracking-[0.16em] text-[#64748b] mb-4 px-1">Capability matrix</p>
                     <div className="rounded-2xl border border-[#21262d] overflow-x-auto bg-[#0d1117]/95 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.03]">
-                        <table className="w-full border-collapse min-w-[640px]">
+                        <table className="w-full border-collapse min-w-[820px]">
                             <thead>
                                 <tr className="bg-[#161b22] text-[0.7rem] uppercase tracking-wider text-[#484f58]">
                                     <th className="text-left py-4 px-6 border-b border-[#21262d]">Capability</th>
                                     <th className="text-left py-4 px-6 border-b border-[#21262d] text-violet-400">PodX</th>
                                     <th className="text-left py-4 px-6 border-b border-[#21262d]">OpenAI / Anthropic</th>
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d]">Azure / AWS</th>
+                                    <th className="text-left py-4 px-6 border-b border-[#21262d]">vLLM</th>
                                     <th className="text-left py-4 px-6 border-b border-[#21262d]">Ollama</th>
                                 </tr>
                             </thead>
                             <tbody className="text-[0.88rem]">
                                 {[
-                                    ["Cost per token", "$0.00", "$0.002–$0.06 / 1K", "$0.00"],
-                                    ["Data leaves network", "Never", "Always", "Never"],
-                                    ["70B+ on consumer HW", "Yes — pooled RAM", "Cloud only", "If one machine fits"],
-                                    ["Multi-machine", "Core feature", "N/A", "No"],
-                                ].map(([c, p, o, ol]) => (
+                                    ["Cost per token",      "$0.00",             "$0.002–$0.06 / 1K", "$0.003–$0.02 / 1K", "Hardware CapEx", "$0.00"],
+                                    ["Data leaves network", "Never",             "Always",             "Always",             "Never",          "Never"],
+                                    ["70B+ on consumer HW", "Yes — pooled RAM",  "Cloud only",         "Cloud only",         "If GPU fits",    "If one machine fits"],
+                                    ["Multi-machine",       "Core feature",      "N/A",                "N/A",                "No",             "No"],
+                                    ["Zero-config setup",   "One binary",        "SaaS",               "SaaS",               "Python + CUDA",  "One binary"],
+                                    ["Embedded dashboard",  "Yes",               "Web console",        "Web console",        "No",             "No"],
+                                ].map(([c, p, o, az, vl, ol]) => (
                                     <tr key={c as string} className="hover:bg-violet-500/[0.03] border-b border-[#21262d] last:border-0">
                                         <td className="py-4 px-6 text-[#c9d1d9] font-medium">{c}</td>
                                         <td className="py-4 px-6 text-emerald-400 font-bold">{p}</td>
                                         <td className="py-4 px-6 text-[#8b949e]">{o}</td>
+                                        <td className="py-4 px-6 text-[#8b949e]">{az}</td>
+                                        <td className="py-4 px-6 text-[#8b949e]">{vl}</td>
                                         <td className="py-4 px-6 text-[#8b949e]">{ol}</td>
                                     </tr>
                                 ))}
