@@ -3,6 +3,7 @@ import { Download, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { adminFetch } from '@/lib/storage';
 
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
 
@@ -17,7 +18,7 @@ export default function ReportWidget() {
      
      setLoading(true);
      try {
-         const response = await fetch(`${API_BASE}/report?startDate=${startDate}&endDate=${endDate}`);
+         const response = await adminFetch(`${API_BASE}/report?startDate=${startDate}&endDate=${endDate}`);
          if (!response.ok) throw new Error("Report fetch failed");
          
          const contentType = response.headers.get("content-type");

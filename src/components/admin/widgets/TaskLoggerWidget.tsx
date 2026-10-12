@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Play, Square, Terminal } from "lucide-react";
+import { adminFetch } from '@/lib/storage';
 
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
 
@@ -18,7 +19,7 @@ export default function TaskLoggerWidget() {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    fetch(`${API_BASE}/tasks/active`)
+    adminFetch(`${API_BASE}/tasks/active`)
       .then(res => {
          if (res.status === 200) return res.json();
          return null;
@@ -60,7 +61,7 @@ export default function TaskLoggerWidget() {
     e.preventDefault();
     if (!taskName || !jiraId || !projectName) return;
     
-    fetch(`${API_BASE}/tasks/start`, {
+    adminFetch(`${API_BASE}/tasks/start`, {
        method: 'POST',
        headers: { 'Content-Type': 'application/json' },
        body: JSON.stringify({ taskName, jiraId, projectKey: projectName, workType })
@@ -77,7 +78,7 @@ export default function TaskLoggerWidget() {
 
   const handleStop = () => {
     if (activeTaskId) {
-       fetch(`${API_BASE}/tasks/${activeTaskId}/stop`, {
+       adminFetch(`${API_BASE}/tasks/${activeTaskId}/stop`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
        }).catch(console.error);

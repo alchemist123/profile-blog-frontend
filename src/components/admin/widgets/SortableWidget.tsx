@@ -2,6 +2,7 @@ import { type ReactNode, useState, useEffect, type MouseEvent } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripHorizontal, Scaling } from 'lucide-react';
+import { adminFetch } from '@/lib/storage';
 
 interface SortableWidgetProps {
   id: string;
@@ -21,7 +22,7 @@ export function SortableWidget({ id, children }: SortableWidgetProps) {
   const [sizeIdx, setSizeIdx] = useState(0);
 
   useEffect(() => {
-    fetch(`${API_BASE}/layout`)
+    adminFetch(`${API_BASE}/layout`)
       .then(res => {
          if (!res.ok) throw new Error();
          return res.json();
@@ -52,11 +53,11 @@ export function SortableWidget({ id, children }: SortableWidgetProps) {
     const nextIdx = sizeIdx >= SPAN_CONFIGS.length - 1 ? 0 : sizeIdx + 1;
     setSizeIdx(nextIdx);
     
-    fetch(`${API_BASE}/layout`)
+    adminFetch(`${API_BASE}/layout`)
       .then(res => res.ok ? res.json() : {})
       .then((data: any) => {
          const payload = { ...data, sizes: { ...(data.sizes || {}), [id]: { spanIndex: nextIdx } } };
-         fetch(`${API_BASE}/layout`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+         adminFetch(`${API_BASE}/layout`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       })
       .catch(() => {
          localStorage.setItem(`widget-sizeIndex-${id}`, nextIdx.toString());

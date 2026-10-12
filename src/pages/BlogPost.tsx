@@ -15,6 +15,8 @@ import CoverArt from "@/components/blog/CoverArt";
 import ShareButtons from "@/components/blog/ShareButtons";
 import TableOfContents from "@/components/blog/TableOfContents";
 import ReadingProgress from "@/components/blog/ReadingProgress";
+import EmbeddedHtml from "@/components/blog/EmbeddedHtml";
+import { attachAutoHeightEmbed } from "@/lib/embed";
 import BlogCard from "@/components/blog/BlogCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -114,22 +116,23 @@ const BlogPost = () => {
             .catch(() => setRelated([]));
     }, [blog]);
 
-    // Legacy posts stored as a single HTML string: render embedded HTML blocks in sandboxed iframes
+    // Legacy posts stored as a single HTML string: render embedded HTML blocks as auto-height sandboxed iframes
     useEffect(() => {
         if (blog?.blocks && blog.blocks.length > 0) return;
+        const cleanups: Array<() => void> = [];
         contentRef.current?.querySelectorAll('[data-type="html-block"]').forEach((block) => {
             const div = block as HTMLElement;
             const html = div.getAttribute("data-html");
             if (!html) return;
             div.innerHTML = "";
             const iframe = document.createElement("iframe");
-            iframe.setAttribute("title", "HTML block");
-            iframe.sandbox.add("allow-scripts");
-            iframe.srcdoc = html;
-            iframe.className = "w-full border-0 my-8 bg-white";
-            iframe.style.minHeight = "320px";
+            iframe.title = "Embedded content";
+            iframe.className = "block w-full overflow-hidden border-0 my-2 rounded-2xl";
+            iframe.style.height = "320px";
             div.appendChild(iframe);
+            cleanups.push(attachAutoHeightEmbed(iframe, html));
         });
+        return () => cleanups.forEach((c) => c());
     }, [blog?.content, blog?.blocks]);
 
     // Body fragments with heading ids injected, plus the table of contents built from them
@@ -329,14 +332,7 @@ const BlogPost = () => {
                                 {body.useBlocks ? (
                                     (blog.blocks ?? []).map((block, i) =>
                                         block.type === "html" ? (
-                                            <iframe
-                                                key={i}
-                                                title="HTML block"
-                                                srcDoc={block.content ?? ""}
-                                                sandbox="allow-scripts"
-                                                className="block w-full border-0 bg-white"
-                                                style={{ minHeight: "320px" }}
-                                            />
+                                            <EmbeddedHtml key={i} html={block.content ?? ""} className="my-2 rounded-2xl" />
                                         ) : (
                                             <div key={i} className="blog-content-block" dangerouslySetInnerHTML={{ __html: body.fragments[i] }} />
                                         )

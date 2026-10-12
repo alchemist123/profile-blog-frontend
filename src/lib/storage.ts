@@ -40,12 +40,70 @@ export interface BlogSearchParams {
     tag?: string;
 }
 
+/* ───────── Admin session ───────── */
+
+const ADMIN_TOKEN_KEY = "admin-session";
+export const ADMIN_SESSION_EXPIRED = "admin-session-expired";
+
+export function getAdminToken(): string | null {
+    try {
+        const raw = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+        if (!raw) return null;
+        const { token, expiresAt } = JSON.parse(raw) as { token: string; expiresAt: number };
+        return expiresAt > Date.now() ? token : null;
+    } catch {
+        return null;
+    }
+}
+
+export function clearAdminToken() {
+    try {
+        sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    } catch {
+        /* ignore */
+    }
+}
+
+/** Exchange the admin password for a short-lived session token (the password itself is never stored). */
+export async function adminLogin(password: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((body as { error?: string }).error ?? "Login failed");
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, JSON.stringify(body));
+}
+
+export async function checkAdminSession(): Promise<boolean> {
+    const token = getAdminToken();
+    if (!token) return false;
+    const res = await fetch(`${API_BASE}/api/auth/session`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+    if (!res?.ok) clearAdminToken();
+    return Boolean(res?.ok);
+}
+
+/** fetch() that carries the admin session; a 401 clears it and notifies the admin UI. */
+export async function adminFetch(input: string, init?: RequestInit): Promise<Response> {
+    const token = getAdminToken();
+    const res = await fetch(input, {
+        ...init,
+        headers: { ...init?.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (res.status === 401) {
+        clearAdminToken();
+        window.dispatchEvent(new Event(ADMIN_SESSION_EXPIRED));
+    }
+    return res;
+}
+
 async function request<T>(
     path: string,
     options?: RequestInit
 ): Promise<T> {
     const url = `${API_BASE}${path}`;
-    const res = await fetch(url, {
+    const res = await adminFetch(url, {
         ...options,
         cache: "no-store",
         headers: {

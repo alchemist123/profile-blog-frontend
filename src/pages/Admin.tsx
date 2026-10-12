@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { getBlogs, getBlogById, deleteBlog, blocksToHtml, type BlogPost } from "@/lib/storage";
+import {
+    ADMIN_SESSION_EXPIRED,
+    adminLogin,
+    blocksToHtml,
+    checkAdminSession,
+    clearAdminToken,
+    deleteBlog,
+    getBlogById,
+    getBlogs,
+    type BlogPost,
+} from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +21,26 @@ import ProductivityDashboard from "@/components/admin/ProductivityDashboard";
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingSession, setCheckingSession] = useState(true);
     const [password, setPassword] = useState("");
+    const [loginError, setLoginError] = useState<string | null>(null);
+    const [loggingIn, setLoggingIn] = useState(false);
     const [blogs, setBlogs] = useState<BlogPost[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [currentBlog, setCurrentBlog] = useState<Partial<BlogPost>>({});
+
+    // Resume an existing session in this tab, and drop back to login when it expires.
+    useEffect(() => {
+        checkAdminSession()
+            .then(setIsAuthenticated)
+            .finally(() => setCheckingSession(false));
+        const onExpired = () => {
+            setIsAuthenticated(false);
+            setLoginError("Your session expired. Log in again — unsaved writing is kept in this browser.");
+        };
+        window.addEventListener(ADMIN_SESSION_EXPIRED, onExpired);
+        return () => window.removeEventListener(ADMIN_SESSION_EXPIRED, onExpired);
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -24,13 +50,25 @@ const Admin = () => {
         }
     }, [isAuthenticated]);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "100Thousand@123") {
+        setLoggingIn(true);
+        setLoginError(null);
+        try {
+            await adminLogin(password);
+            setPassword("");
             setIsAuthenticated(true);
-        } else {
-            alert("Invalid password");
+        } catch (err) {
+            setLoginError((err as Error).message);
+        } finally {
+            setLoggingIn(false);
         }
+    };
+
+    const handleLogout = () => {
+        clearAdminToken();
+        setIsAuthenticated(false);
+        setIsEditing(false);
     };
 
     const refreshBlogs = () => {
@@ -49,6 +87,10 @@ const Admin = () => {
         }
     };
 
+    if (checkingSession) {
+        return <div className="flex min-h-[60vh] items-center justify-center text-sm text-slate-500">Checking session…</div>;
+    }
+
     if (!isAuthenticated) {
         return (
             <div className="container flex items-center justify-center min-h-[60vh]">
@@ -62,10 +104,15 @@ const Admin = () => {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter admin password (admin123)"
+                                    placeholder="Admin password"
+                                    autoComplete="current-password"
+                                    autoFocus
                                 />
                             </div>
-                            <Button type="submit" className="w-full">Login</Button>
+                            {loginError && <p className="text-sm text-red-500">{loginError}</p>}
+                            <Button type="submit" className="w-full" disabled={!password || loggingIn}>
+                                {loggingIn ? "Checking…" : "Login"}
+                            </Button>
                         </form>
                     </CardContent>
                 </Card>
@@ -96,7 +143,7 @@ const Admin = () => {
                     <Button onClick={() => { setCurrentBlog({}); setIsEditing(true); }} className="rounded-full">
                         <Plus className="mr-2 h-4 w-4" /> Write a story
                     </Button>
-                    <Button variant="ghost" onClick={() => setIsAuthenticated(false)}>
+                    <Button variant="ghost" onClick={handleLogout}>
                         Logout
                     </Button>
                 </div>

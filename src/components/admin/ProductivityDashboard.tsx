@@ -21,6 +21,7 @@ import StatsWidget from './widgets/StatsWidget';
 import ClockWidget from './widgets/ClockWidget';
 import CalendarWidget from './widgets/CalendarWidget';
 import ReportWidget from './widgets/ReportWidget';
+import { adminFetch } from '@/lib/storage';
 
 type WidgetDef = { id: string; component: ReactElement };
 
@@ -39,7 +40,7 @@ export default function ProductivityDashboard() {
   const [widgets, setWidgets] = useState<WidgetDef[]>(INITIAL_WIDGETS);
 
   useEffect(() => {
-    fetch(`${API_BASE}/layout`)
+    adminFetch(`${API_BASE}/layout`)
       .then(res => {
         if (!res.ok) throw new Error('Network error');
         return res.json();
@@ -83,11 +84,11 @@ export default function ProductivityDashboard() {
         const newItems = arrayMove(items, oldIndex, newIndex);
 
         // Put exactly the API JSON Payload, maintaining existing backend values
-        fetch(`${API_BASE}/layout`)
+        adminFetch(`${API_BASE}/layout`)
           .then(res => res.ok ? res.json() : {})
           .then(data => {
             const payload = { ...data, order: newItems.map(w => w.id) };
-            fetch(`${API_BASE}/layout`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(console.error);
+            adminFetch(`${API_BASE}/layout`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(console.error);
           })
           .catch(() => {
             // Fallback Local Storage

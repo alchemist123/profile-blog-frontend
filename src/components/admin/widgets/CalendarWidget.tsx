@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { Calendar as CalendarIcon, MapPin, Video, Plus, Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { adminFetch } from '@/lib/storage';
 
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
 
@@ -14,7 +15,7 @@ export default function CalendarWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/schedule?date=${defaultDate}`)
+    adminFetch(`${API_BASE}/schedule?date=${defaultDate}`)
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setMeetings(data); })
       .catch(console.error)
@@ -35,7 +36,7 @@ export default function CalendarWidget() {
     const hh = parseInt(h);
     const formattedTime = `${hh % 12 || 12}:${m} ${hh >= 12 ? 'PM' : 'AM'}`;
 
-    fetch(`${API_BASE}/schedule`, {
+    adminFetch(`${API_BASE}/schedule`, {
        method: 'POST',
        headers: { 'Content-Type': 'application/json' },
        body: JSON.stringify({ title: newTitle, date: newDate, time: formattedTime })

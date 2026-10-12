@@ -1,5 +1,6 @@
 import { Activity, Database, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import { adminFetch } from '@/lib/storage';
 
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/productivity` : '/api/v1/productivity';
 
@@ -8,7 +9,7 @@ export default function StatsWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/stats?period=today`)
+    adminFetch(`${API_BASE}/stats?period=today`)
       .then(res => res.json())
       .then(data => {
          if (data) setStats({
