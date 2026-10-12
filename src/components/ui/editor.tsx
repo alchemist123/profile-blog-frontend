@@ -1,15 +1,19 @@
-import { EditorProvider, TiptapFloatingMenu as FloatingMenu, TiptapBubbleMenu as BubbleMenu, useCurrentEditor, EditorContent } from '@tiptap/react'
+import { EditorProvider, TiptapFloatingMenu as FloatingMenu, TiptapBubbleMenu as BubbleMenu, useCurrentEditor, useEditorState, type Editor as TiptapEditor } from '@tiptap/react'
+import { Extension } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
-import CodeBlock from '@tiptap/extension-code-block'
 import Placeholder from '@tiptap/extension-placeholder'
 import Youtube from '@tiptap/extension-youtube'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import FloatingMenuExtension from '@tiptap/extension-floating-menu'
 import { EditorState } from '@tiptap/pm/state'
-import { Plus, Image as ImageIcon, Youtube as YoutubeIcon, Code, Type, FileCode, Heading1 } from 'lucide-react'
+import {
+    Plus, Image as ImageIcon, Youtube as YoutubeIcon, Code, Code2, FileCode, Heading2, Heading3, Pilcrow,
+    Bold, Italic, Underline, Strikethrough, Link2, List, ListOrdered, Quote, Minus, Undo2, Redo2,
+    type LucideIcon,
+} from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { HtmlBlock } from './editor-html-block'
 
 interface EditorProps {
@@ -17,34 +21,35 @@ interface EditorProps {
     onChange: (html: string) => void;
 }
 
+const LinkShortcut = Extension.create({
+    name: 'linkShortcut',
+    addKeyboardShortcuts() {
+        return { 'Mod-k': () => { promptLink(this.editor); return true } }
+    },
+})
+
 const extensions = [
-    StarterKit,
-    Image.configure({
-        HTMLAttributes: {
-            class: 'rounded-lg border shadow-sm my-4',
-        },
+    LinkShortcut,
+    StarterKit.configure({
+        heading: { levels: [2, 3, 4] },
+        link: { openOnClick: false, autolink: true, defaultProtocol: 'https' },
     }),
-    CodeBlock.configure({
-        HTMLAttributes: {
-            class: 'rounded-md p-4 font-mono text-sm my-4',
-        },
-    }),
+    Image,
     Youtube.configure({
-        HTMLAttributes: {
-            class: 'w-full aspect-video rounded-lg border shadow-sm my-4',
-        },
+        HTMLAttributes: { class: 'w-full aspect-video rounded-2xl my-8' },
     }),
     HtmlBlock,
     Placeholder.configure({
-        placeholder: 'Tell your story...',
+        placeholder: ({ pos }) => (pos === 0 ? 'Start writing… (type ## for a heading, > for a quote, ``` for code)' : 'Write something…'),
     }),
     BubbleMenuExtension,
     FloatingMenuExtension,
 ]
 
+// Same typography as the published article, so the editor is WYSIWYG.
 const editorProps = {
     attributes: {
-        class: 'prose prose-zinc dark:prose-invert max-w-none focus:outline-none min-h-[300px]',
+        class: 'article-body focus:outline-none min-h-[50vh] pb-24',
     },
 }
 
@@ -55,250 +60,247 @@ const Editor = ({ content, onChange }: EditorProps) => {
                 extensions={extensions}
                 content={content}
                 editorProps={editorProps}
-                onUpdate={({ editor }) => {
-                    onChange(editor.getHTML())
-                }}
+                onUpdate={({ editor }) => onChange(editor.getHTML())}
                 immediatelyRender={true}
+                slotBefore={<ToolbarSlot />}
+                editorContainerProps={{ className: 'editor-blocks' }}
             >
                 <EditorMenus />
             </EditorProvider>
 
             <style>{`
-                /* Medium-like: story = collection of blocks with spacing */
-                .editor-blocks .ProseMirror {
-                    position: relative;
-                }
-                .editor-blocks .ProseMirror > * + * {
-                    margin-top: 1.5rem;
-                }
-                .editor-blocks .ProseMirror p.is-editor-empty::before {
-                    color: #adb5bd;
+                .editor-blocks .ProseMirror .is-empty::before {
+                    color: #A29DBD;
                     content: attr(data-placeholder);
                     float: left;
                     height: 0;
                     pointer-events: none;
+                    font-size: 1rem;
                 }
-                .editor-blocks .ProseMirror p.is-editor-empty:first-child::before {
-                    content: "Tell your story...";
+                .editor-blocks .ProseMirror .ProseMirror-selectednode {
+                    outline: 2px solid #FF5C35;
+                    outline-offset: 2px;
+                    border-radius: 1rem;
                 }
-                .editor-blocks .ProseMirror p.is-editor-empty:not(:first-child)::before {
-                    content: "Write something...";
-                }
-                .editor-blocks .ProseMirror .is-empty.is-editor-empty::before {
-                    content: "Write something...";
-                }
-                .tippy-box {
-                    z-index: 1000 !important;
-                }
+                .tippy-box { z-index: 1000 !important; }
             `}</style>
         </div>
     )
 }
 
-/** Add block "+" that appears on empty lines (e.g. after double Enter) — has its own menu state */
-const FloatingAddBlockButton = () => {
-    const [open, setOpen] = useState(false)
+/* ───────── Actions shared by toolbar, "+" menu and bubble menu ───────── */
+
+function promptLink(editor: TiptapEditor) {
+    const prev = editor.getAttributes('link').href as string | undefined
+    const url = window.prompt('Link URL (leave empty to remove)', prev ?? 'https://')
+    if (url === null) return
+    if (url === '' || url === 'https://') {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run()
+        return
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+}
+
+function promptImage(editor: TiptapEditor) {
+    const url = window.prompt('Image URL')
+    if (!url) return
+    const alt = window.prompt('Alt text (describes the image for screen readers)') ?? ''
+    editor.chain().focus().setImage({ src: url, alt }).run()
+}
+
+function promptVideo(editor: TiptapEditor) {
+    const url = window.prompt('YouTube URL')
+    if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run()
+}
+
+interface Action {
+    key: string
+    label: string
+    icon: LucideIcon
+    run: (e: TiptapEditor) => void
+    active?: (e: TiptapEditor) => boolean
+    shortcut?: string
+}
+
+const BLOCK_ACTIONS: Action[] = [
+    { key: 'p', label: 'Text', icon: Pilcrow, run: (e) => e.chain().focus().setParagraph().run(), active: (e) => e.isActive('paragraph') },
+    { key: 'h2', label: 'Heading', icon: Heading2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(), active: (e) => e.isActive('heading', { level: 2 }), shortcut: '## ' },
+    { key: 'h3', label: 'Subheading', icon: Heading3, run: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(), active: (e) => e.isActive('heading', { level: 3 }), shortcut: '### ' },
+]
+
+const MARK_ACTIONS: Action[] = [
+    { key: 'bold', label: 'Bold', icon: Bold, run: (e) => e.chain().focus().toggleBold().run(), active: (e) => e.isActive('bold'), shortcut: 'Ctrl+B' },
+    { key: 'italic', label: 'Italic', icon: Italic, run: (e) => e.chain().focus().toggleItalic().run(), active: (e) => e.isActive('italic'), shortcut: 'Ctrl+I' },
+    { key: 'underline', label: 'Underline', icon: Underline, run: (e) => e.chain().focus().toggleUnderline().run(), active: (e) => e.isActive('underline'), shortcut: 'Ctrl+U' },
+    { key: 'strike', label: 'Strikethrough', icon: Strikethrough, run: (e) => e.chain().focus().toggleStrike().run(), active: (e) => e.isActive('strike') },
+    { key: 'code', label: 'Inline code', icon: Code, run: (e) => e.chain().focus().toggleCode().run(), active: (e) => e.isActive('code'), shortcut: '`code`' },
+    { key: 'link', label: 'Link', icon: Link2, run: promptLink, active: (e) => e.isActive('link'), shortcut: 'Ctrl+K' },
+]
+
+const STRUCTURE_ACTIONS: Action[] = [
+    { key: 'ul', label: 'Bullet list', icon: List, run: (e) => e.chain().focus().toggleBulletList().run(), active: (e) => e.isActive('bulletList'), shortcut: '- ' },
+    { key: 'ol', label: 'Numbered list', icon: ListOrdered, run: (e) => e.chain().focus().toggleOrderedList().run(), active: (e) => e.isActive('orderedList'), shortcut: '1. ' },
+    { key: 'quote', label: 'Quote', icon: Quote, run: (e) => e.chain().focus().toggleBlockquote().run(), active: (e) => e.isActive('blockquote'), shortcut: '> ' },
+    { key: 'codeblock', label: 'Code block', icon: Code2, run: (e) => e.chain().focus().toggleCodeBlock().run(), active: (e) => e.isActive('codeBlock'), shortcut: '``` ' },
+    { key: 'hr', label: 'Divider', icon: Minus, run: (e) => e.chain().focus().setHorizontalRule().run(), shortcut: '---' },
+]
+
+const MEDIA_ACTIONS: Action[] = [
+    { key: 'image', label: 'Image', icon: ImageIcon, run: promptImage },
+    { key: 'video', label: 'Video', icon: YoutubeIcon, run: promptVideo },
+    { key: 'html', label: 'HTML embed', icon: FileCode, run: (e) => e.chain().focus().setHtmlBlock().run() },
+]
+
+const ToolbarButton = ({ action, editor, active }: { action: Action; editor: TiptapEditor; active: boolean }) => {
+    const Icon = action.icon
     return (
-        <div className="relative flex items-center -ml-10">
-            <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground transition-all bg-background shadow-sm"
-                onClick={() => setOpen((v) => !v)}
+        <button
+            type="button"
+            onMouseDown={(ev) => ev.preventDefault()}
+            onClick={() => action.run(editor)}
+            title={action.shortcut ? `${action.label} (${action.shortcut})` : action.label}
+            aria-label={action.label}
+            aria-pressed={active}
+            className={cn(
+                'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                active ? 'bg-ink-950 text-white' : 'text-ink-500 hover:bg-sand hover:text-ink-950'
+            )}
+        >
+            <Icon className="h-4 w-4" />
+        </button>
+    )
+}
+
+const Divider = () => <span className="mx-1 h-5 w-px shrink-0 bg-sand-line" />
+
+/** Always-visible formatting bar. */
+const Toolbar = ({ editor }: { editor: TiptapEditor }) => {
+    const groups = [BLOCK_ACTIONS, MARK_ACTIONS, STRUCTURE_ACTIONS, MEDIA_ACTIONS]
+    const state = useEditorState({
+        editor,
+        selector: ({ editor: e }) => ({
+            active: Object.fromEntries(groups.flat().map((a) => [a.key, a.active?.(e) ?? false])),
+            canUndo: e.can().undo(),
+            canRedo: e.can().redo(),
+        }),
+    })
+
+    return (
+        <div className="sticky top-[7.5rem] z-20 -mx-2 mb-8 flex items-center gap-0.5 overflow-x-auto rounded-xl border border-sand-line bg-white/95 p-1 shadow-sm backdrop-blur [scrollbar-width:none]">
+            {groups.map((group, gi) => (
+                <div key={gi} className="flex items-center gap-0.5">
+                    {gi > 0 && <Divider />}
+                    {group.map((a) => <ToolbarButton key={a.key} action={a} editor={editor} active={state.active[a.key]} />)}
+                </div>
+            ))}
+            <div className="ml-auto flex items-center gap-0.5 pl-2">
+                <Divider />
+                <button type="button" title="Undo (Ctrl+Z)" disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-500 hover:bg-sand hover:text-ink-950 disabled:opacity-30">
+                    <Undo2 className="h-4 w-4" />
+                </button>
+                <button type="button" title="Redo (Ctrl+Shift+Z)" disabled={!state.canRedo} onClick={() => editor.chain().focus().redo().run()} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-500 hover:bg-sand hover:text-ink-950 disabled:opacity-30">
+                    <Redo2 className="h-4 w-4" />
+                </button>
+            </div>
+        </div>
+    )
+}
+
+/** "+" on empty lines: quick insert of the most common blocks. */
+const FloatingAddBlockButton = ({ editor }: { editor: TiptapEditor }) => {
+    const [open, setOpen] = useState(false)
+    const items = [BLOCK_ACTIONS[1], BLOCK_ACTIONS[2], STRUCTURE_ACTIONS[0], STRUCTURE_ACTIONS[2], STRUCTURE_ACTIONS[3], ...MEDIA_ACTIONS]
+    return (
+        <div className="relative -ml-12 flex items-center">
+            <button
                 type="button"
-                title="Add block"
+                onMouseDown={(ev) => ev.preventDefault()}
+                onClick={() => setOpen((v) => !v)}
+                title="Insert block"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-400 shadow-sm transition-all hover:border-ember-500 hover:text-ember-600"
             >
-                <Plus className={`h-4 w-4 transition-transform ${open ? 'rotate-45' : ''}`} />
-            </Button>
+                <Plus className={cn('h-4 w-4 transition-transform', open && 'rotate-45')} />
+            </button>
             {open && (
-                <div className="absolute left-10 top-0 flex items-center gap-1 p-1 bg-background border rounded-lg shadow-md animate-in slide-in-from-left-2 fade-in z-[1000] whitespace-nowrap">
-                    <MenuOptions setShowOptions={setOpen} />
+                <div className="absolute left-10 top-0 z-[1000] flex items-center gap-0.5 whitespace-nowrap rounded-xl border border-sand-line bg-white p-1 shadow-lg animate-in fade-in slide-in-from-left-2">
+                    {items.map((a) => {
+                        const Icon = a.icon
+                        return (
+                            <button
+                                key={a.key}
+                                type="button"
+                                onMouseDown={(ev) => ev.preventDefault()}
+                                onClick={() => { a.run(editor); setOpen(false) }}
+                                className="flex h-12 w-14 flex-col items-center justify-center gap-1 rounded-lg text-ink-500 hover:bg-sand hover:text-ink-950"
+                            >
+                                <Icon className="h-4 w-4" />
+                                <span className="text-[10px] font-medium">{a.label.split(' ')[0]}</span>
+                            </button>
+                        )
+                    })}
                 </div>
             )}
         </div>
     )
 }
 
-const EditorMenus = () => {
+const ToolbarSlot = () => {
     const { editor } = useCurrentEditor()
-    const [showBlockMenu, setShowBlockMenu] = useState(false)
-
-    if (!editor) return null
-
-    return (
-        <div className="flex gap-0 w-full">
-            {/* Always-visible add block button (Medium-style left gutter) */}
-            <div className="flex-shrink-0 pt-[0.35rem] w-10 flex justify-center">
-                <div className="relative">
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground transition-all bg-background shadow-sm"
-                        onClick={() => {
-                            editor.commands.focus()
-                            setShowBlockMenu((v) => !v)
-                        }}
-                        type="button"
-                        title="Add block"
-                    >
-                        <Plus className={`h-4 w-4 transition-transform ${showBlockMenu ? 'rotate-45' : ''}`} />
-                    </Button>
-                    {showBlockMenu && (
-                        <>
-                            <div
-                                className="fixed inset-0 z-[999]"
-                                aria-hidden
-                                onClick={() => setShowBlockMenu(false)}
-                            />
-                            <div className="absolute left-10 top-0 flex items-center gap-1 p-1 bg-background border rounded-lg shadow-md animate-in slide-in-from-left-2 fade-in z-[1000] whitespace-nowrap">
-                                <MenuOptions setShowOptions={setShowBlockMenu} />
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            <div className="flex-1 min-w-0 relative">
-                {/* Add block "+" when cursor is in an empty line (e.g. after double Enter) */}
-                <FloatingMenu
-                    className="flex items-center"
-                    shouldShow={({ state }: { state: EditorState }) => {
-                        const { $from } = state.selection
-                        return $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0
-                    }}
-                >
-                    <FloatingAddBlockButton />
-                </FloatingMenu>
-
-                <BubbleMenu
-                    className="flex items-center gap-1 p-1 bg-background border rounded-lg shadow-lg z-[1000]"
-                >
-                    <BubbleOptions />
-                </BubbleMenu>
-
-                <div className="editor-blocks">
-                    <EditorContent editor={editor} />
-                </div>
-            </div>
-        </div>
-    )
+    return editor ? <Toolbar editor={editor} /> : null
 }
 
-const MenuOptions = ({ setShowOptions }: { setShowOptions: (show: boolean) => void }) => {
+/** Floating "+" and selection bubble; EditorProvider renders the document itself. */
+const EditorMenus = () => {
     const { editor } = useCurrentEditor()
-
     if (!editor) return null
-
-    const addImage = () => {
-        const url = window.prompt('Image URL')
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run()
-            setShowOptions(false)
-        }
-    }
-
-    const addYoutube = () => {
-        const url = window.prompt('YouTube URL')
-        if (url) {
-            editor.commands.setYoutubeVideo({ src: url })
-            setShowOptions(false)
-        }
-    }
 
     return (
         <>
-            <button
-                onClick={() => { editor.chain().focus().setParagraph().run(); setShowOptions(false); }}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="Text"
-            >
-                <Type className="h-5 w-5" />
-                <span className="text-[10px]">Text</span>
-            </button>
 
-            <button
-                onClick={() => { editor.chain().focus().toggleHeading({ level: 2 }).run(); setShowOptions(false); }}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="Heading"
+            <FloatingMenu
+                className="flex items-center"
+                shouldShow={({ state }: { state: EditorState }) => {
+                    const { $from } = state.selection
+                    return $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0
+                }}
             >
-                <Heading1 className="h-5 w-5" />
-                <span className="text-[10px]">Title</span>
-            </button>
+                <FloatingAddBlockButton editor={editor} />
+            </FloatingMenu>
 
-            <button
-                onClick={() => { editor.chain().focus().toggleCodeBlock().run(); setShowOptions(false); }}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="Code"
-            >
-                <Code className="h-5 w-5" />
-                <span className="text-[10px]">Code</span>
-            </button>
+            <BubbleMenu className="z-[1000] flex items-center gap-0.5 rounded-xl bg-ink-950 p-1 shadow-xl">
+                <BubbleOptions editor={editor} />
+            </BubbleMenu>
 
-            <button
-                onClick={() => { editor.chain().focus().setHtmlBlock().run(); setShowOptions(false); }}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="HTML"
-            >
-                <FileCode className="h-5 w-5" />
-                <span className="text-[10px]">HTML</span>
-            </button>
-
-            <button
-                onClick={addImage}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="Image URL"
-            >
-                <ImageIcon className="h-5 w-5" />
-                <span className="text-[10px]">Image</span>
-            </button>
-
-            <button
-                onClick={addYoutube}
-                className="flex flex-col items-center justify-center w-12 h-12 hover:bg-muted rounded text-muted-foreground hover:text-foreground gap-1"
-                title="Video URL"
-            >
-                <YoutubeIcon className="h-5 w-5" />
-                <span className="text-[10px]">Video</span>
-            </button>
         </>
     )
 }
 
-const BubbleOptions = () => {
-    const { editor } = useCurrentEditor()
-
-    if (!editor) return null
-
+/** Dark selection bubble with inline formatting. */
+const BubbleOptions = ({ editor }: { editor: TiptapEditor }) => {
+    const items = [...MARK_ACTIONS.filter((a) => a.key !== 'strike'), BLOCK_ACTIONS[1], STRUCTURE_ACTIONS[2]]
+    const active = useEditorState({
+        editor,
+        selector: ({ editor: e }) => Object.fromEntries(items.map((a) => [a.key, a.active?.(e) ?? false])),
+    })
     return (
         <>
-            <button
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={`p-1.5 rounded hover:bg-muted ${editor.isActive('bold') ? 'text-primary' : 'text-muted-foreground'}`}
-                title="Bold"
-            >
-                <span className="font-bold text-sm">B</span>
-            </button>
-            <button
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={`p-1.5 rounded hover:bg-muted ${editor.isActive('italic') ? 'text-primary' : 'text-muted-foreground'}`}
-                title="Italic"
-            >
-                <span className="italic text-sm">I</span>
-            </button>
-            <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={`p-1.5 rounded hover:bg-muted ${editor.isActive('heading', { level: 2 }) ? 'text-primary' : 'text-muted-foreground'}`}
-                title="Heading 1"
-            >
-                <span className="font-bold text-xs">H1</span>
-            </button>
-            <button
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                className={`p-1.5 rounded hover:bg-muted ${editor.isActive('codeBlock') ? 'text-primary' : 'text-muted-foreground'}`}
-                title="Code Block"
-            >
-                <Code className="h-4 w-4" />
-            </button>
+            {items.map((a) => {
+                const Icon = a.icon
+                return (
+                    <button
+                        key={a.key}
+                        type="button"
+                        onClick={() => a.run(editor)}
+                        title={a.label}
+                        className={cn(
+                            'inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                            active[a.key] ? 'bg-ember-500 text-white' : 'text-ink-200 hover:bg-white/10 hover:text-white'
+                        )}
+                    >
+                        <Icon className="h-4 w-4" />
+                    </button>
+                )
+            })}
         </>
     )
 }

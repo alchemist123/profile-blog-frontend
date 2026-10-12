@@ -1,151 +1,173 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
 import { getBlogsSearch, getBlogTags, type BlogPost } from "@/lib/storage";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar, ArrowRight, Search, Heart, MessageCircle, Eye } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import BlogCard, { FeaturedCard } from "@/components/blog/BlogCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const BlogList = () => {
-    const [blogs, setBlogs] = useState<BlogPost[]>([]);
+    const [result, setResult] = useState<{ key: string; blogs: BlogPost[]; error: string | null } | null>(null);
     const [tags, setTags] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [searchInput, setSearchInput] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTag, setSelectedTag] = useState("");
 
-    const fetchBlogs = useCallback(() => {
-        setLoading(true);
-        setError(null);
-        getBlogsSearch({
-            search: searchQuery || undefined,
-            tag: selectedTag || undefined,
-        })
-            .then(setBlogs)
-            .catch((err) => setError((err as Error).message))
-            .finally(() => setLoading(false));
-    }, [searchQuery, selectedTag]);
+    // Debounce typing so we don't hit the API on every keystroke.
+    useEffect(() => {
+        const t = setTimeout(() => setSearchQuery(searchInput), 300);
+        return () => clearTimeout(t);
+    }, [searchInput]);
+
+    const queryKey = `${searchQuery}\u0000${selectedTag}`;
+    useEffect(() => {
+        let cancelled = false;
+        getBlogsSearch({ search: searchQuery || undefined, tag: selectedTag || undefined })
+            .then((blogs) => !cancelled && setResult({ key: queryKey, blogs, error: null }))
+            .catch((err) => !cancelled && setResult({ key: queryKey, blogs: [], error: (err as Error).message }));
+        return () => {
+            cancelled = true;
+        };
+    }, [queryKey, searchQuery, selectedTag]);
+
+    const loading = result?.key !== queryKey;
+    const blogs = loading ? [] : result.blogs;
+    const error = loading ? null : result.error;
 
     useEffect(() => {
-        fetchBlogs();
-    }, [fetchBlogs]);
-
-    useEffect(() => {
-        getBlogTags()
-            .then(setTags)
-            .catch(() => setTags([]));
+        getBlogTags().then(setTags).catch(() => setTags([]));
     }, []);
 
+    useEffect(() => {
+        document.title = "Logs | Amal V S";
+    }, []);
+
+    const filtering = Boolean(searchQuery || selectedTag);
+    const [featured, ...rest] = blogs;
+    const gridPosts = filtering ? blogs : rest;
+
     return (
-        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center text-center space-y-4 mb-10">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Technical Blog</h1>
-                <p className="max-w-[700px] text-muted-foreground text-lg">
-                    Insights on AI, Backend Architecture, and Cloud Systems.
-                </p>
-            </div>
+        <div className="bg-paper font-reading text-ink-800">
+            {/* Hero */}
+            <section className="relative overflow-hidden bg-ink-950 text-white">
+                <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-ember-500/30 blur-[120px]" aria-hidden />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent)]" aria-hidden />
+                <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16 sm:px-6 md:pb-20 md:pt-24 lg:px-8">
+                    <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-ember-300">
+                        <span className="h-px w-8 bg-ember-400" /> Engineering logs
+                    </p>
+                    <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.1] tracking-tight md:text-6xl">
+                        Notes on building systems that <em className="font-medium italic text-ember-400">hold up</em>.
+                    </h1>
+                    <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-200 md:text-lg">
+                        Field notes on AI, backend architecture and cloud infrastructure — what worked, what broke, and why.
+                    </p>
 
-            {/* Search and tag filter */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search by title or summary..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
-                    />
+                    <div className="relative mt-10 max-w-xl">
+                        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                        <input
+                            type="search"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            placeholder="Search articles, topics, tags…"
+                            className="h-12 w-full rounded-full border border-white/10 bg-white/5 pl-11 pr-11 text-sm text-white placeholder:text-ink-300 outline-none backdrop-blur transition focus:border-ember-400 focus:bg-white/10 focus:ring-4 focus:ring-ember-500/20"
+                        />
+                        {searchInput && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchInput("")}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-ink-300 hover:bg-white/10 hover:text-white"
+                                title="Clear search"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
-                <select
-                    value={selectedTag}
-                    onChange={(e) => setSelectedTag(e.target.value)}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[180px]"
-                >
-                    <option value="">All tags</option>
-                    {tags.map((tag) => (
-                        <option key={tag} value={tag}>
-                            {tag}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            </section>
 
-            {loading && (
-                <div className="text-center py-12 text-muted-foreground">Loading posts...</div>
-            )}
-            {error && (
-                <div className="text-center py-12 text-destructive">
-                    Failed to load posts. {error}
+            {/* Tag filter */}
+            {tags.length > 0 && (
+                <div className="sticky top-16 z-30 border-b border-sand-line bg-paper/90 backdrop-blur">
+                    <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8 [scrollbar-width:none]">
+                        {["", ...tags].map((tag) => (
+                            <button
+                                key={tag || "all"}
+                                type="button"
+                                onClick={() => setSelectedTag(tag)}
+                                className={cn(
+                                    "shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                                    selectedTag === tag
+                                        ? "border-ink-950 bg-ink-950 text-white"
+                                        : "border-sand-line bg-white text-ink-600 hover:border-ink-300 hover:text-ink-950"
+                                )}
+                            >
+                                {tag || "All"}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
-            {!loading && !error && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {blogs.map((blog) => (
-                        <Card key={blog.id} className="flex flex-col h-full hover:shadow-md transition-shadow">
-                            {blog.coverImage && (
-                                <div className="w-full h-48 overflow-hidden rounded-t-xl bg-muted">
-                                    <img
-                                        src={blog.coverImage}
-                                        alt={blog.title}
-                                        className="w-full h-full object-cover transition-transform hover:scale-105"
-                                    />
-                                </div>
-                            )}
-                            <CardHeader>
-                                <div className="flex gap-2 mb-2 flex-wrap min-h-0 overflow-hidden">
-                                    {(blog.tags ?? []).slice(0, 3).map((tag) => (
-                                        <Badge key={tag} variant="secondary" className="text-xs shrink-0">
-                                            {tag}
-                                        </Badge>
-                                    ))}
-                                </div>
-                                <CardTitle className="line-clamp-2">{blog.title}</CardTitle>
-                                <div className="flex items-center text-xs text-muted-foreground mt-2 gap-3 flex-wrap">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="mr-0.5 h-3 w-3" />
-                                        {new Date(blog.createdAt).toLocaleDateString()}
-                                    </span>
-                                    {(blog.readCount ?? 0) > 0 && (
-                                        <span className="flex items-center gap-1">
-                                            <Eye className="h-3 w-3" />
-                                            {blog.readCount}
-                                        </span>
-                                    )}
-                                    {(blog.likes ?? 0) > 0 && (
-                                        <span className="flex items-center gap-1">
-                                            <Heart className="h-3 w-3" />
-                                            {blog.likes}
-                                        </span>
-                                    )}
-                                    {((blog.comments?.length) ?? 0) > 0 && (
-                                        <span className="flex items-center gap-1">
-                                            <MessageCircle className="h-3 w-3" />
-                                            {blog.comments?.length ?? 0}
-                                        </span>
-                                    )}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="flex-1">
-                                <p className="text-muted-foreground line-clamp-3">{blog.summary}</p>
-                            </CardContent>
-                            <CardFooter>
-                                <Button asChild className="w-full" variant="ghost">
-                                    <Link to={`/blog/${blog.id}`}>
-                                        Read More <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                    {blogs.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-muted-foreground">
-                            No posts found. Try a different search or tag.
+
+            <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+                {loading && (
+                    <div className="space-y-10">
+                        <Skeleton className="h-[340px] w-full rounded-3xl bg-sand" />
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {[0, 1, 2].map((i) => <Skeleton key={i} className="h-80 rounded-2xl bg-sand" />)}
                         </div>
-                    )}
-                </div>
-            )}
+                    </div>
+                )}
+
+                {!loading && error && (
+                    <div className="rounded-2xl border border-ember-200 bg-ember-50 p-8 text-center text-ember-800">
+                        Couldn&apos;t load posts. {error}
+                    </div>
+                )}
+
+                {!loading && !error && blogs.length === 0 && (
+                    <div className="rounded-3xl border border-dashed border-sand-line py-20 text-center">
+                        <p className="font-display text-2xl text-ink-900">Nothing matches that yet.</p>
+                        <p className="mt-2 text-ink-500">Try another keyword or clear the filter.</p>
+                        {filtering && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearchInput(""); setSelectedTag(""); }}
+                                className="mt-6 rounded-full bg-ink-950 px-5 py-2 text-sm font-semibold text-white hover:bg-ember-600"
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!loading && !error && blogs.length > 0 && (
+                    <>
+                        {filtering ? (
+                            <p className="mb-8 text-sm text-ink-500">
+                                {blogs.length} {blogs.length === 1 ? "article" : "articles"}
+                                {selectedTag && <> tagged <strong className="text-ink-950">{selectedTag}</strong></>}
+                                {searchQuery && <> matching “<strong className="text-ink-950">{searchQuery}</strong>”</>}
+                            </p>
+                        ) : (
+                            <FeaturedCard blog={featured} />
+                        )}
+
+                        {gridPosts.length > 0 && (
+                            <>
+                                {!filtering && (
+                                    <div className="mb-8 mt-16 flex items-end justify-between border-b border-sand-line pb-4">
+                                        <h2 className="font-display text-2xl font-semibold text-ink-950 md:text-3xl">More articles</h2>
+                                        <span className="text-sm text-ink-400">{blogs.length} published</span>
+                                    </div>
+                                )}
+                                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {gridPosts.map((blog) => <BlogCard key={blog.id} blog={blog} />)}
+                                </div>
+                            </>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 };

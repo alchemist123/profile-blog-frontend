@@ -164,15 +164,15 @@ const Footer = () => {
 
 const Layout = () => {
     const location = useLocation();
-    const isBlogPostView = /^\/blog\/[^/]+$/.test(location.pathname);
+    const isBlogView = /^\/blog(\/[^/]+)?\/?$/.test(location.pathname);
 
     return (
         <div className="min-h-screen bg-[#0B1015] font-sans antialiased flex flex-col text-slate-300">
             <Navbar />
             <main
                 className={
-                    isBlogPostView
-                        ? "flex-1 min-h-0 bg-white text-zinc-900 pt-16 [color-scheme:light]"
+                    isBlogView
+                        ? "flex-1 min-h-0 bg-paper text-ink-900 pt-16 [color-scheme:light]"
                         : "flex-1 pt-16"
                 }
             >

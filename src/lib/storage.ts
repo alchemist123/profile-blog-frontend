@@ -12,17 +12,25 @@ export interface ContentBlockItem {
     content: string;
 }
 
+export type BlogStatus = "draft" | "published";
+
 export interface BlogPost {
     id: string;
     title: string;
     summary: string;
     content: string;
     createdAt: string;
+    updatedAt?: string;
     coverImage?: string;
     tags: string[];
     likes?: number;
     readCount?: number;
     comments?: BlogComment[];
+    /** List endpoint returns a count instead of the full comments array */
+    commentCount?: number;
+    /** Minutes, computed by the backend on save */
+    readingTime?: number;
+    status?: BlogStatus;
     /** When present, render from blocks instead of content (no size limit per block) */
     blocks?: ContentBlockItem[];
 }
@@ -53,8 +61,8 @@ async function request<T>(
     return res.json();
 }
 
-export async function getBlogs(): Promise<BlogPost[]> {
-    return request<BlogPost[]>("/api/blogs");
+export async function getBlogs(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
+    return request<BlogPost[]>(`/api/blogs${opts?.includeDrafts ? "?includeDrafts=1" : ""}`);
 }
 
 export async function getBlogsSearch(params?: BlogSearchParams): Promise<BlogPost[]> {
@@ -149,6 +157,7 @@ export async function saveBlog(
         content: blocks ? "" : (blog.content ?? ""),
         coverImage: blog.coverImage,
         tags,
+        ...(blog.status && { status: blog.status }),
         ...(blocks && { blocks }),
     };
     if (blog.id) {

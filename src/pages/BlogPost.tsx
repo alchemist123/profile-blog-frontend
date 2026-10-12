@@ -1,173 +1,150 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Calendar, ChevronDown, Clock, Eye, Heart, List, Mail, MessageCircle } from "lucide-react";
 import {
-    getBlogById,
-    recordRead,
-    likeBlog,
     addComment,
-    type BlogPost as BlogPostType,
+    getBlogById,
+    getBlogs,
+    likeBlog,
+    recordRead,
     type BlogComment,
+    type BlogPost as BlogPostType,
 } from "@/lib/storage";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Calendar, User, Heart, MessageCircle, Eye, Share2, Copy, Check } from "lucide-react";
+import { AUTHOR, addHeadingIds, formatDate, readingTimeOf } from "@/lib/blog";
+import CoverArt from "@/components/blog/CoverArt";
+import ShareButtons from "@/components/blog/ShareButtons";
+import TableOfContents from "@/components/blog/TableOfContents";
+import ReadingProgress from "@/components/blog/ReadingProgress";
+import BlogCard from "@/components/blog/BlogCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
-const shareUrl = (base: string, params: Record<string, string>) =>
-    base + "?" + new URLSearchParams(params).toString();
+const LIKED_KEY = "blog:liked";
 
-const ShareButtons = ({
-    url,
-    title,
-    onCopy,
-    copied,
-}: {
-    url: string;
-    title: string;
-    onCopy: () => void;
-    copied: boolean;
-}) => {
-    const text = `${title} ${url}`;
-    const iconClass = "h-4 w-4";
+function hasLiked(id: string): boolean {
+    try {
+        return (JSON.parse(localStorage.getItem(LIKED_KEY) ?? "[]") as string[]).includes(id);
+    } catch {
+        return false;
+    }
+}
 
-    return (
-        <div className="flex items-center gap-1">
-            <a
-                href={shareUrl("https://www.linkedin.com/sharing/share-offsite/", { url })}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                title="Share on LinkedIn"
-            >
-                <LinkedInIcon className={iconClass} />
-                <span className="sr-only">LinkedIn</span>
-            </a>
-            <a
-                href={`https://wa.me/?text=${encodeURIComponent(text)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                title="Share on WhatsApp"
-            >
-                <WhatsAppIcon className={iconClass} />
-                <span className="sr-only">WhatsApp</span>
-            </a>
-            <a
-                href={shareUrl("https://twitter.com/intent/tweet", { url: url, text: title })}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                title="Share on X (Twitter)"
-            >
-                <TwitterIcon className={iconClass} />
-                <span className="sr-only">X</span>
-            </a>
-            <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                    navigator.clipboard.writeText(url);
-                    onCopy();
-                }}
-                title="Copy link"
-            >
-                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-            </Button>
+function rememberLike(id: string) {
+    try {
+        const ids = JSON.parse(localStorage.getItem(LIKED_KEY) ?? "[]") as string[];
+        localStorage.setItem(LIKED_KEY, JSON.stringify([...new Set([...ids, id])]));
+    } catch {
+        /* storage unavailable */
+    }
+}
+
+const SidebarHeading = ({ children }: { children: React.ReactNode }) => (
+    <h4 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-400">{children}</h4>
+);
+
+const PostSkeleton = () => (
+    <div className="bg-paper">
+        <div className="bg-ink-950">
+            <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pt-20">
+                <div className="space-y-5">
+                    <Skeleton className="h-5 w-40 bg-white/10" />
+                    <Skeleton className="h-12 w-full bg-white/10" />
+                    <Skeleton className="h-12 w-3/4 bg-white/10" />
+                    <Skeleton className="h-5 w-64 bg-white/10" />
+                </div>
+                <Skeleton className="aspect-[16/9] w-full rounded-2xl bg-white/10" />
+            </div>
         </div>
-    );
-};
-
-const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-    </svg>
-);
-const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-);
-const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
+            <Skeleton className="hidden h-64 rounded-2xl bg-sand lg:block" />
+            <div className="max-w-[720px] space-y-4">
+                {[100, 95, 100, 80, 100, 60].map((w, i) => (
+                    <Skeleton key={i} className="h-4 rounded bg-sand" style={{ width: `${w}%` }} />
+                ))}
+            </div>
+        </div>
+    </div>
 );
 
 const BlogPost = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [blog, setBlog] = useState<BlogPostType | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [likes, setLikes] = useState<number>(0);
-    const [readCount, setReadCount] = useState<number>(0);
-    const [liked, setLiked] = useState(false);
+    const [likes, setLikes] = useState(0);
+    const [readCount, setReadCount] = useState(0);
+    const [likedNow, setLikedNow] = useState<string[]>([]);
+    const [related, setRelated] = useState<BlogPostType[]>([]);
     const [commentName, setCommentName] = useState("");
     const [commentText, setCommentText] = useState("");
     const [submittingComment, setSubmittingComment] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const articleRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
-    const readRecorded = useRef(false);
+    const readRecorded = useRef<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
-        setLoading(true);
         getBlogById(id)
             .then((found) => {
-                if (found) {
-                    setBlog(found);
-                    setLikes(found.likes ?? 0);
-                    setReadCount(found.readCount ?? 0);
-                } else {
-                    navigate("/blog");
-                }
+                if (!found) return navigate("/blog");
+                setBlog(found);
+                setLikes(found.likes ?? 0);
+                setReadCount(found.readCount ?? 0);
             })
-            .catch(() => navigate("/blog"))
-            .finally(() => setLoading(false));
+            .catch(() => navigate("/blog"));
+        window.scrollTo({ top: 0 });
     }, [id, navigate]);
 
-    // Record read count once when post is viewed
+    // Record read count once per post view
     useEffect(() => {
-        if (!id || !blog || readRecorded.current) return;
-        readRecorded.current = true;
-        recordRead(id)
-            .then((res) => setReadCount(res.readCount))
-            .catch(() => {});
+        if (!id || !blog || readRecorded.current === id) return;
+        readRecorded.current = id;
+        recordRead(id).then((res) => setReadCount(res.readCount)).catch(() => {});
     }, [id, blog]);
 
-    // Legacy: render HTML blocks in iframes when content is stored as single HTML (no blocks)
+    // Related posts: share a tag first, then fall back to most recent
+    useEffect(() => {
+        if (!blog) return;
+        getBlogs()
+            .then((all) => {
+                const others = all.filter((b) => b.id !== blog.id);
+                const tagSet = new Set(blog.tags ?? []);
+                const score = (b: BlogPostType) => (b.tags ?? []).filter((t) => tagSet.has(t)).length;
+                setRelated([...others].sort((a, b) => score(b) - score(a)).slice(0, 3));
+            })
+            .catch(() => setRelated([]));
+    }, [blog]);
+
+    // Legacy posts stored as a single HTML string: render embedded HTML blocks in sandboxed iframes
     useEffect(() => {
         if (blog?.blocks && blog.blocks.length > 0) return;
-        const el = contentRef.current;
-        if (!el) return;
-        el.querySelectorAll('[data-type="html-block"]').forEach((block) => {
+        contentRef.current?.querySelectorAll('[data-type="html-block"]').forEach((block) => {
             const div = block as HTMLElement;
             const html = div.getAttribute("data-html");
-            if (html) {
-                div.innerHTML = "";
-                const iframe = document.createElement("iframe");
-                iframe.setAttribute("title", "HTML block");
-                iframe.sandbox.add("allow-scripts");
-                iframe.srcdoc = html;
-                iframe.className = "w-full min-h-[320px] border-0 rounded-lg my-4 bg-white";
-                iframe.style.minHeight = "320px";
-                div.appendChild(iframe);
-            }
+            if (!html) return;
+            div.innerHTML = "";
+            const iframe = document.createElement("iframe");
+            iframe.setAttribute("title", "HTML block");
+            iframe.sandbox.add("allow-scripts");
+            iframe.srcdoc = html;
+            iframe.className = "w-full border-0 my-8 bg-white";
+            iframe.style.minHeight = "320px";
+            div.appendChild(iframe);
         });
     }, [blog?.content, blog?.blocks]);
 
-    // OG meta for share preview (when link is shared)
+    // Body fragments with heading ids injected, plus the table of contents built from them
+    const body = useMemo(() => {
+        const blocks = blog?.blocks ?? [];
+        const useBlocks = blocks.length > 0;
+        const rich = useBlocks ? blocks.map((b) => (b.type === "html" ? "" : b.content ?? "")) : [blog?.content ?? ""];
+        const { fragments, headings } = addHeadingIds(rich);
+        return { useBlocks, fragments, headings };
+    }, [blog]);
+    const headings = body.headings;
+
+    // OG meta for share previews
     useEffect(() => {
         if (!blog) return;
-        const title = blog.title;
-        const desc = blog.summary || blog.title;
-        const img = blog.coverImage || "";
-        const url = typeof window !== "undefined" ? window.location.href : "";
         const setMeta = (property: string, content: string) => {
             let el = document.querySelector(`meta[property="${property}"]`);
             if (!el) {
@@ -177,24 +154,25 @@ const BlogPost = () => {
             }
             el.setAttribute("content", content);
         };
-        setMeta("og:title", title);
-        setMeta("og:description", desc);
-        setMeta("og:image", img);
-        setMeta("og:url", url);
-        document.title = `${title} | Blog`;
+        setMeta("og:title", blog.title);
+        setMeta("og:description", blog.summary || blog.title);
+        setMeta("og:image", blog.coverImage || "");
+        setMeta("og:url", window.location.href);
+        document.title = `${blog.title} | Amal V S`;
         return () => {
-            document.title = "profile";
+            document.title = "Amal V S | Blog";
         };
     }, [blog]);
 
+    const loading = !blog || blog.id !== id;
+    const liked = Boolean(id && (likedNow.includes(id) || hasLiked(id)));
+
     const handleLike = () => {
         if (!id || liked) return;
-        likeBlog(id)
-            .then((res) => {
-                setLikes(res.likes);
-                setLiked(true);
-            })
-            .catch(() => {});
+        setLikedNow((ids) => [...ids, id]);
+        setLikes((n) => n + 1);
+        rememberLike(id);
+        likeBlog(id).then((res) => setLikes(res.likes)).catch(() => {});
     };
 
     const handleCommentSubmit = (e: React.FormEvent) => {
@@ -209,10 +187,7 @@ const BlogPost = () => {
                               ...prev,
                               comments: [
                                   ...(prev.comments ?? []),
-                                  {
-                                      ...newComment,
-                                      createdAt: newComment.createdAt ?? new Date().toISOString(),
-                                  },
+                                  { ...newComment, createdAt: newComment.createdAt ?? new Date().toISOString() },
                               ],
                           }
                         : null
@@ -224,241 +199,258 @@ const BlogPost = () => {
             .finally(() => setSubmittingComment(false));
     };
 
-    const comments: BlogComment[] = blog?.comments ?? [];
-
-    if (loading || !blog) {
-        return (
-            <div className="min-h-[calc(100vh-4rem)] w-full bg-white text-zinc-900 [color-scheme:light]">
-            <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <Skeleton className="h-10 w-32 mb-8 rounded-md" />
-                <div className="space-y-4 mb-8">
-                    <div className="flex flex-wrap gap-2">
-                        <Skeleton className="h-6 w-16 rounded-full" />
-                        <Skeleton className="h-6 w-20 rounded-full" />
-                        <Skeleton className="h-6 w-14 rounded-full" />
-                    </div>
-                    <Skeleton className="h-12 w-full max-w-2xl rounded-md" />
-                    <Skeleton className="h-12 w-3/4 max-w-md rounded-md" />
-                    <div className="flex gap-6 pt-2">
-                        <Skeleton className="h-4 w-24 rounded" />
-                        <Skeleton className="h-4 w-32 rounded" />
-                    </div>
-                </div>
-                <Skeleton className="w-full h-[400px] rounded-xl mb-10" />
-                <div className="space-y-3 mt-8">
-                    <Skeleton className="h-4 w-full rounded" />
-                    <Skeleton className="h-4 w-full rounded" />
-                    <Skeleton className="h-4 w-4/5 rounded" />
-                    <Skeleton className="h-4 w-full rounded" />
-                    <Skeleton className="h-4 w-2/3 rounded" />
-                </div>
-                <div className="mt-12 pt-8 border-t border-zinc-200 flex flex-wrap items-center gap-6">
-                    <Skeleton className="h-9 w-20 rounded-md" />
-                    <div className="flex gap-2">
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                    </div>
-                </div>
-                <div className="mt-10 pt-8 border-t border-zinc-200 space-y-4">
-                    <Skeleton className="h-6 w-28 rounded" />
-                    <Skeleton className="h-24 w-full rounded-md" />
-                    <Skeleton className="h-10 w-24 rounded-md" />
-                </div>
-            </div>
-            </div>
-        );
-    }
+    if (loading || !blog) return <PostSkeleton />;
 
     const tags = Array.isArray(blog.tags) ? blog.tags : [];
+    const comments: BlogComment[] = blog.comments ?? [];
+    const url = window.location.href.split("#")[0];
+    const minutes = readingTimeOf(blog);
+
+    const likeButton = (
+        <button
+            type="button"
+            onClick={handleLike}
+            disabled={liked}
+            className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all",
+                liked
+                    ? "border-ember-500 bg-ember-500 text-white"
+                    : "border-ink-200 text-ink-800 hover:border-ember-500 hover:text-ember-600"
+            )}
+        >
+            <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+            {likes} {likes === 1 ? "like" : "likes"}
+        </button>
+    );
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] w-full bg-white text-zinc-900 [color-scheme:light]">
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <Button variant="ghost" className="mb-8 pl-0 hover:pl-2 transition-all text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100" asChild>
-                <Link to="/blog">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
-                </Link>
-            </Button>
+        <div className="bg-paper font-reading text-ink-800">
+            <ReadingProgress target={articleRef} />
 
-            <article className="prose prose-zinc lg:prose-xl max-w-none prose-headings:!text-zinc-900 prose-p:text-zinc-800 prose-li:text-zinc-800 prose-strong:text-zinc-900">
-                <div className="space-y-4 mb-8 not-prose">
-                    <div className="flex flex-wrap gap-2">
-                        {tags.map((tag) => (
-                            <Badge key={tag} variant="secondary">
-                                {tag}
-                            </Badge>
-                        ))}
-                    </div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 lg:text-5xl mb-4">
-                        {blog.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
-                        <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            <span>Amal V S</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>
-                                {new Date(blog.createdAt).toLocaleDateString(undefined, {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })}
+            {/* ── Hero ── */}
+            <section className="relative overflow-hidden bg-ink-950 text-white">
+                <div className="absolute -left-40 top-0 h-[28rem] w-[28rem] rounded-full bg-ember-500/20 blur-[140px]" aria-hidden />
+                <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 pb-14 pt-10 sm:px-6 md:pb-20 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:pt-16">
+                    <div>
+                        <nav className="mb-8 flex items-center gap-2 text-sm text-ink-300">
+                            <Link to="/blog" className="inline-flex items-center gap-1.5 hover:text-white">
+                                <ArrowLeft className="h-4 w-4" /> All logs
+                            </Link>
+                            {tags[0] && (
+                                <>
+                                    <span className="text-ink-500">/</span>
+                                    <span className="text-ember-300">{tags[0]}</span>
+                                </>
+                            )}
+                        </nav>
+                        <h1 className="font-display text-[2rem] font-semibold leading-[1.12] tracking-tight md:text-5xl">
+                            {blog.title}
+                        </h1>
+                        {blog.summary && (
+                            <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-200 md:text-lg">{blog.summary}</p>
+                        )}
+                        <ul className="mt-8 flex flex-wrap items-center gap-y-3 text-xs font-medium uppercase tracking-[0.12em] text-ink-200 md:text-sm">
+                            {[
+                                { icon: Clock, text: `${minutes} min read` },
+                                { icon: Calendar, text: formatDate(blog.createdAt) },
+                                ...(readCount > 0 ? [{ icon: Eye, text: `${readCount} reads` }] : []),
+                            ].map(({ icon: Icon, text }) => (
+                                <li key={text} className="flex items-center gap-2 border-r border-white/15 pr-4 mr-4 last:mr-0 last:border-0 last:pr-0">
+                                    <Icon className="h-4 w-4 text-ember-400" />
+                                    {text}
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="mt-8 flex items-center gap-3">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ember-500 font-display text-lg font-semibold">
+                                {AUTHOR.name.charAt(0)}
                             </span>
+                            <div className="leading-tight">
+                                <p className="text-sm font-semibold">{AUTHOR.name}</p>
+                                <p className="text-xs text-ink-300">{AUTHOR.role}</p>
+                            </div>
                         </div>
-                        {(readCount > 0) && (
-                            <div className="flex items-center gap-2">
-                                <Eye className="h-4 w-4" />
-                                <span>{readCount} reads</span>
+                    </div>
+                    <CoverArt
+                        src={blog.coverImage}
+                        title={blog.title}
+                        label={tags[0]}
+                        className="aspect-[610/343] w-full rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10 lg:ml-auto lg:max-w-[38rem]"
+                    />
+                </div>
+            </section>
+
+            {/* ── Body ── */}
+            <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+                <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
+                    {/* Sidebar */}
+                    <aside className="hidden w-[260px] shrink-0 flex-col gap-10 lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)]">
+                        {headings.length > 0 && (
+                            <div className="min-h-0 overflow-y-auto pr-2">
+                                <SidebarHeading>On this page</SidebarHeading>
+                                <TableOfContents headings={headings} />
                             </div>
                         )}
-                    </div>
-                </div>
+                        <div className="shrink-0">
+                            <SidebarHeading>Share</SidebarHeading>
+                            <ShareButtons url={url} title={blog.title} />
+                        </div>
+                        <div className="shrink-0 rounded-2xl bg-ink-950 p-5 text-white">
+                            <p className="font-display text-lg font-semibold leading-snug">Building something similar?</p>
+                            <p className="mt-2 text-sm leading-relaxed text-ink-200">
+                                Happy to compare notes on architecture, AI pipelines or scaling.
+                            </p>
+                            <a
+                                href={`mailto:${AUTHOR.email}?subject=${encodeURIComponent(`Re: ${blog.title}`)}`}
+                                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ember-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ember-600"
+                            >
+                                <Mail className="h-4 w-4" /> Get in touch
+                            </a>
+                        </div>
+                    </aside>
 
-                {blog.coverImage && (
-                    <div className="w-full h-[400px] overflow-hidden rounded-xl mb-10 bg-muted">
-                        <img
-                            src={blog.coverImage}
-                            alt={blog.title}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-                )}
-
-                {(blog.blocks ?? []).length > 0 ? (
-                    <div className="mt-8 leading-7 blog-content space-y-4">
-                        {(blog.blocks ?? []).map((block, i) =>
-                            block.type === "html" ? (
-                                <iframe
-                                    key={i}
-                                    title="HTML block"
-                                    srcDoc={block.content ?? ""}
-                                    sandbox="allow-scripts"
-                                    className="w-full min-h-[320px] border-0 rounded-lg my-4 bg-white block"
-                                    style={{ minHeight: "320px" }}
-                                />
-                            ) : (
-                                <div
-                                    key={i}
-                                    className="blog-content-block prose prose-zinc max-w-none [&_*]:max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: block.content ?? "" }}
-                                />
-                            )
-                        )}
-                    </div>
-                ) : (
-                    <div
-                        ref={contentRef}
-                        className="mt-8 leading-7 blog-content"
-                        dangerouslySetInnerHTML={{ __html: blog.content ?? "" }}
-                    />
-                )}
-            </article>
-
-            {/* Like & Share */}
-            <div className="mt-12 pt-8 border-t border-zinc-200 flex flex-wrap items-center gap-6">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-2"
-                    onClick={handleLike}
-                    disabled={liked}
-                >
-                    <Heart
-                        className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`}
-                    />
-                    {likes} {likes === 1 ? "like" : "likes"}
-                </Button>
-
-                <div className="flex items-center gap-2">
-                    <Share2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Share:</span>
-                    <ShareButtons
-                        url={typeof window !== "undefined" ? window.location.href : ""}
-                        title={blog.title}
-                        onCopy={() => {
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                        }}
-                        copied={copied}
-                    />
-                </div>
-            </div>
-
-            {/* Comments */}
-            <div className="mt-10 pt-8 border-t border-zinc-200">
-                <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-                    <MessageCircle className="h-5 w-5" />
-                    Comments {comments.length > 0 && `(${comments.length})`}
-                </h3>
-
-                <form onSubmit={handleCommentSubmit} className="space-y-4 mb-10">
-                    <div className="space-y-2">
-                        <Label htmlFor="comment-name">Name (optional)</Label>
-                        <Input
-                            id="comment-name"
-                            placeholder="Your name or leave blank for Anonymous"
-                            value={commentName}
-                            onChange={(e) => setCommentName(e.target.value)}
-                            className="max-w-md"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="comment-text">Comment</Label>
-                        <Textarea
-                            id="comment-text"
-                            placeholder="Write a comment..."
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            rows={4}
-                            required
-                            className="max-w-full"
-                        />
-                    </div>
-                    <Button type="submit" disabled={!commentText.trim() || submittingComment}>
-                        {submittingComment ? "Posting..." : "Post comment"}
-                    </Button>
-                </form>
-
-                <ul className="space-y-4 list-none p-0 m-0">
-                    {comments.length === 0 && (
-                        <li className="text-muted-foreground text-sm">No comments yet.</li>
-                    )}
-                    {comments.map((c, i) => (
-                        <li
-                            key={(c as BlogComment & { _id?: string })._id ?? c.id ?? i}
-                            className="list-none"
-                        >
-                            <Card className="border bg-card shadow-sm overflow-hidden">
-                                <CardContent className="p-4">
-                                    <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                                        <span className="font-semibold text-sm text-primary bg-primary/10 px-2 py-0.5 rounded">
-                                            {c.name || "Anonymous"}
-                                        </span>
-                                        {c.createdAt && (
-                                            <span className="text-xs text-muted-foreground">
-                                                {new Date(c.createdAt).toLocaleString(undefined, {
-                                                    year: "numeric",
-                                                    month: "short",
-                                                    day: "numeric",
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                })}
-                                            </span>
-                                        )}
+                    {/* Article */}
+                    <div className="min-w-0 flex-1">
+                        <div className="max-w-[720px]">
+                            {/* Mobile contents */}
+                            {headings.length > 0 && (
+                                <details className="group mb-10 rounded-2xl border border-sand-line bg-white lg:hidden">
+                                    <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-950">
+                                        <span className="flex items-center gap-2"><List className="h-4 w-4 text-ember-500" /> On this page</span>
+                                        <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                                    </summary>
+                                    <div className="px-5 pb-5">
+                                        <TableOfContents headings={headings} />
                                     </div>
-                                    <p className="text-sm text-foreground mt-2 leading-relaxed whitespace-pre-wrap">
-                                        {c.text}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
+                                </details>
+                            )}
+
+                            <article ref={articleRef} className="article-body">
+                                {body.useBlocks ? (
+                                    (blog.blocks ?? []).map((block, i) =>
+                                        block.type === "html" ? (
+                                            <iframe
+                                                key={i}
+                                                title="HTML block"
+                                                srcDoc={block.content ?? ""}
+                                                sandbox="allow-scripts"
+                                                className="block w-full border-0 bg-white"
+                                                style={{ minHeight: "320px" }}
+                                            />
+                                        ) : (
+                                            <div key={i} className="blog-content-block" dangerouslySetInnerHTML={{ __html: body.fragments[i] }} />
+                                        )
+                                    )
+                                ) : (
+                                    <div ref={contentRef} className="blog-content-block" dangerouslySetInnerHTML={{ __html: body.fragments[0] }} />
+                                )}
+                            </article>
+
+                            {/* Tags + reactions */}
+                            <div className="mt-14 flex flex-col gap-6 border-y border-sand-line py-6 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex flex-wrap gap-2">
+                                    {tags.map((tag) => (
+                                        <span key={tag} className="rounded-full bg-sand px-3 py-1 text-xs font-medium text-ink-600">#{tag}</span>
+                                    ))}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-4">
+                                    {likeButton}
+                                    <ShareButtons url={url} title={blog.title} className="lg:hidden" />
+                                </div>
+                            </div>
+
+                            {/* Author */}
+                            <div className="mt-10 flex flex-col gap-5 rounded-3xl bg-white p-6 ring-1 ring-sand-line sm:flex-row sm:items-center md:p-8">
+                                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ink-950 font-display text-3xl font-semibold text-ember-400">
+                                    {AUTHOR.name.charAt(0)}
+                                </span>
+                                <div className="flex-1">
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-400">Written by</p>
+                                    <p className="mt-1 font-display text-xl font-semibold text-ink-950">{AUTHOR.name}</p>
+                                    <p className="mt-1 text-sm leading-relaxed text-ink-500">{AUTHOR.bio}</p>
+                                </div>
+                                <a
+                                    href={AUTHOR.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-900 hover:border-ink-950"
+                                >
+                                    Follow <ArrowRight className="h-4 w-4" />
+                                </a>
+                            </div>
+
+                            {/* Comments */}
+                            <section className="mt-16">
+                                <h3 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink-950">
+                                    <MessageCircle className="h-5 w-5 text-ember-500" />
+                                    Discussion {comments.length > 0 && <span className="text-ink-400">({comments.length})</span>}
+                                </h3>
+
+                                <form onSubmit={handleCommentSubmit} className="mt-6 rounded-2xl border border-sand-line bg-white p-4 focus-within:border-ink-300 md:p-5">
+                                    <textarea
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        placeholder="Share a thought or ask a question…"
+                                        rows={3}
+                                        required
+                                        className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink-900 outline-none placeholder:text-ink-300"
+                                    />
+                                    <div className="mt-3 flex flex-col gap-3 border-t border-sand-line pt-3 sm:flex-row sm:items-center">
+                                        <input
+                                            value={commentName}
+                                            onChange={(e) => setCommentName(e.target.value)}
+                                            placeholder="Your name (optional)"
+                                            className="flex-1 bg-transparent text-sm text-ink-800 outline-none placeholder:text-ink-300"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!commentText.trim() || submittingComment}
+                                            className="rounded-full bg-ink-950 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-ember-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            {submittingComment ? "Posting…" : "Post comment"}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <ul className="mt-8 space-y-6">
+                                    {comments.length === 0 && <li className="text-sm text-ink-400">No comments yet — start the conversation.</li>}
+                                    {comments.map((c, i) => (
+                                        <li key={c._id ?? c.id ?? i} className="flex gap-4">
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand text-sm font-semibold text-ink-700">
+                                                {(c.name || "A").charAt(0).toUpperCase()}
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                                                    <span className="font-semibold text-ink-950">{c.name || "Anonymous"}</span>
+                                                    {c.createdAt && <span className="text-xs text-ink-400">{formatDate(c.createdAt)}</span>}
+                                                </p>
+                                                <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-ink-700">{c.text}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Keep reading */}
+            {related.length > 0 && (
+                <section className="border-t border-sand-line bg-sand/50">
+                    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="mb-8 flex items-end justify-between">
+                            <h2 className="font-display text-3xl font-semibold text-ink-950">Keep reading</h2>
+                            <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-semibold text-ink-700 hover:text-ember-600">
+                                All logs <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {related.map((b) => <BlogCard key={b.id} blog={b} compact />)}
+                        </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 };

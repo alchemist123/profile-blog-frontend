@@ -66,3 +66,91 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ───────────── Blog: "Ink & Ember" article typography ───────────── */
+@layer components {
+  .article-body {
+    @apply font-reading text-[1.0625rem] leading-[1.8] text-ink-700;
+  }
+  .article-body > * + *,
+  .article-body .blog-content-block > * + * {
+    margin-top: 1.25em;
+  }
+  .article-body h2,
+  .article-body h3,
+  .article-body h4 {
+    @apply font-display text-ink-950 tracking-tight;
+    scroll-margin-top: 6rem;
+  }
+  .article-body h2 {
+    @apply text-[1.75rem] md:text-[2rem] leading-tight font-semibold mt-14 mb-4 pt-6 border-t border-sand-line;
+  }
+  .article-body > h2:first-child,
+  .article-body > .blog-content-block:first-child > h2:first-child {
+    @apply mt-0 border-t-0 pt-0;
+  }
+  .article-body h3 {
+    @apply text-[1.35rem] md:text-[1.5rem] leading-snug font-semibold mt-10 mb-3;
+  }
+  .article-body h4 {
+    @apply text-lg font-semibold mt-8 mb-2;
+  }
+  .article-body h2 strong,
+  .article-body h3 strong {
+    font-weight: inherit;
+  }
+  .article-body a {
+    @apply text-ember-700 font-medium underline decoration-ember-300 decoration-2 underline-offset-4 transition-colors hover:text-ember-600 hover:decoration-ember-500;
+  }
+  .article-body strong {
+    @apply text-ink-950 font-semibold;
+  }
+  .article-body ul,
+  .article-body ol {
+    @apply pl-6 space-y-2;
+  }
+  .article-body ul { list-style: none; }
+  .article-body ul > li { position: relative; }
+  .article-body ul > li::before {
+    content: "";
+    @apply absolute -left-5 top-[0.75em] h-1.5 w-1.5 rounded-full bg-ember-500;
+  }
+  .article-body ol { @apply list-decimal; }
+  .article-body ol > li::marker { @apply text-ember-600 font-semibold; }
+  .article-body blockquote {
+    @apply relative my-8 rounded-r-2xl border-l-4 border-ember-500 bg-sand px-6 py-5 font-display text-xl leading-relaxed text-ink-900 not-italic;
+  }
+  .article-body blockquote p + p { @apply mt-3; }
+  .article-body code {
+    @apply rounded-md bg-sand px-1.5 py-0.5 font-mono text-[0.875em] text-ember-800;
+  }
+  .article-body pre {
+    @apply my-8 overflow-x-auto rounded-2xl bg-ink-950 p-5 text-sm leading-relaxed text-ink-100 shadow-lg shadow-ink-950/10;
+  }
+  .article-body pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+  .article-body img {
+    @apply my-8 w-full rounded-2xl border border-sand-line;
+  }
+  .article-body iframe {
+    @apply rounded-2xl;
+  }
+  .article-body hr {
+    @apply my-12 border-0 h-px bg-sand-line;
+  }
+  .article-body table {
+    @apply my-8 w-full border-collapse text-sm;
+  }
+  .article-body th {
+    @apply border-b-2 border-ink-900 py-2 pr-4 text-left font-semibold text-ink-950;
+  }
+  .article-body td {
+    @apply border-b border-sand-line py-2 pr-4 align-top;
+  }
+  /* First paragraph reads as a lede */
+  .article-body > .blog-content-block:first-child > p:first-child,
+  .article-body > p:first-child {
+    @apply text-xl leading-relaxed text-ink-900;
+  }
+}
