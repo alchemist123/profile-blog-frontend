@@ -133,6 +133,13 @@
   .article-body img {
     @apply my-8 w-full rounded-2xl border border-sand-line;
   }
+  .article-body video {
+    @apply my-8 block w-full rounded-2xl bg-ink-950;
+  }
+  .article-body video[data-orientation="portrait"] {
+    @apply mx-auto max-w-[360px];
+    aspect-ratio: 9 / 16;
+  }
   .article-body iframe {
     @apply rounded-2xl;
   }

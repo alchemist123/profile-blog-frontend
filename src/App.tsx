@@ -4,6 +4,8 @@ import Home from "@/pages/Home";
 import BlogList from "@/pages/BlogList";
 import BlogPost from "@/pages/BlogPost";
 import Admin from "@/pages/Admin";
+import VlogList from "@/pages/VlogList";
+import VlogWatch from "@/pages/VlogWatch";
 import PodXLanding from "@/pages/podx/PodXLanding";
 import PodXDocsPage from "@/pages/podx/PodXDocsPage";
 
@@ -17,6 +19,8 @@ function App() {
           <Route path="podx" element={<PodXLanding />} />
           <Route path="blog" element={<BlogList />} />
           <Route path="blog/:id" element={<BlogPost />} />
+          <Route path="vlogs" element={<VlogList />} />
+          <Route path="vlogs/:id" element={<VlogWatch />} />
           <Route path="admin" element={<Admin />} />
         </Route>
       </Routes>

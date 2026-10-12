@@ -12,6 +12,7 @@ const Navbar = () => {
         { name: "Home", path: "/" },
         { name: "PodX", path: "/podx" },
         { name: "Logs", path: "/blog" },
+        { name: "Vlogs", path: "/vlogs" },
     ];
 
     return (
@@ -24,10 +25,7 @@ const Navbar = () => {
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-6">
                     {navLinks.map((link) => {
-                        const active =
-                            link.path === "/podx"
-                                ? location.pathname.startsWith("/podx")
-                                : location.pathname === link.path;
+                        const active = link.path === "/" ? location.pathname === "/" : location.pathname.startsWith(link.path);
                         return (
                         <Link
                             key={link.path}
@@ -105,10 +103,7 @@ const Navbar = () => {
                                 </div>
                                 <div className="flex flex-col gap-4">
                                 {navLinks.map((link) => {
-                                    const active =
-                                        link.path === "/podx"
-                                            ? location.pathname.startsWith("/podx")
-                                            : location.pathname === link.path;
+                                    const active = link.path === "/" ? location.pathname === "/" : location.pathname.startsWith(link.path);
                                     return (
                                     <Link
                                         key={link.path}

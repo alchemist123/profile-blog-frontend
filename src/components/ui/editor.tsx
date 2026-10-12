@@ -8,13 +8,17 @@ import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import FloatingMenuExtension from '@tiptap/extension-floating-menu'
 import { EditorState } from '@tiptap/pm/state'
 import {
-    Plus, Image as ImageIcon, Youtube as YoutubeIcon, Code, Code2, FileCode, Heading2, Heading3, Pilcrow,
+    Plus, Image as ImageIcon, Code, Code2, FileCode, Heading2, Heading3, Pilcrow,
     Bold, Italic, Underline, Strikethrough, Link2, List, ListOrdered, Quote, Minus, Undo2, Redo2,
     type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Film, Loader2, X as XIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useMediaPicker } from '@/components/media/useMediaPicker'
+import { MAX_BYTES, formatBytes, kindOfFile, probeVideo, uploadMedia } from '@/lib/media'
 import { HtmlBlock } from './editor-html-block'
+import { MediaBridge, Video, type MediaBridgeStorage } from './editor-media'
 
 interface EditorProps {
     content: string;
@@ -39,8 +43,10 @@ const extensions = [
         HTMLAttributes: { class: 'w-full aspect-video rounded-2xl my-8' },
     }),
     HtmlBlock,
+    Video,
+    MediaBridge,
     Placeholder.configure({
-        placeholder: ({ pos }) => (pos === 0 ? 'Start writing… (type ## for a heading, > for a quote, ``` for code)' : 'Write something…'),
+        placeholder: ({ pos }) => (pos === 0 ? 'Start writing… (## heading, > quote, ``` code — drop or paste photos & videos)' : 'Write something…'),
     }),
     BubbleMenuExtension,
     FloatingMenuExtension,
@@ -62,7 +68,7 @@ const Editor = ({ content, onChange }: EditorProps) => {
                 editorProps={editorProps}
                 onUpdate={({ editor }) => onChange(editor.getHTML())}
                 immediatelyRender={true}
-                slotBefore={<ToolbarSlot />}
+                slotBefore={<><ToolbarSlot /><MediaBridgeSlot /></>}
                 editorContainerProps={{ className: 'editor-blocks' }}
             >
                 <EditorMenus />
@@ -101,16 +107,32 @@ function promptLink(editor: TiptapEditor) {
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
 }
 
-function promptImage(editor: TiptapEditor) {
-    const url = window.prompt('Image URL')
-    if (!url) return
-    const alt = window.prompt('Alt text (describes the image for screen readers)') ?? ''
-    editor.chain().focus().setImage({ src: url, alt }).run()
+const bridge = (editor: TiptapEditor) => (editor.storage as unknown as { mediaBridge: MediaBridgeStorage }).mediaBridge
+
+async function orientationOf(src: string): Promise<'portrait' | 'landscape'> {
+    try {
+        const { width, height } = await probeVideo(src)
+        return height > width ? 'portrait' : 'landscape'
+    } catch {
+        return 'landscape'
+    }
 }
 
-function promptVideo(editor: TiptapEditor) {
-    const url = window.prompt('YouTube URL')
-    if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run()
+/** Insert a media block after the current selection (never replacing a selected photo/video). */
+function insertBlock(editor: TiptapEditor, type: string, attrs: Record<string, unknown>) {
+    editor.chain().focus().insertContentAt(editor.state.selection.to, { type, attrs }).run()
+}
+
+async function pickImage(editor: TiptapEditor) {
+    const sel = await bridge(editor).pick?.('image')
+    if (sel) insertBlock(editor, 'image', { src: sel.url, alt: sel.alt ?? '' })
+}
+
+async function pickVideo(editor: TiptapEditor) {
+    const sel = await bridge(editor).pick?.('video')
+    if (!sel) return
+    if (sel.source === 'youtube') insertBlock(editor, 'youtube', { src: sel.url })
+    else insertBlock(editor, 'video', { src: sel.url, orientation: await orientationOf(sel.url) })
 }
 
 interface Action {
@@ -146,8 +168,8 @@ const STRUCTURE_ACTIONS: Action[] = [
 ]
 
 const MEDIA_ACTIONS: Action[] = [
-    { key: 'image', label: 'Image', icon: ImageIcon, run: promptImage },
-    { key: 'video', label: 'Video', icon: YoutubeIcon, run: promptVideo },
+    { key: 'image', label: 'Photo', icon: ImageIcon, run: pickImage },
+    { key: 'video', label: 'Video', icon: Film, run: pickVideo },
     { key: 'html', label: 'HTML embed', icon: FileCode, run: (e) => e.chain().focus().setHtmlBlock().run() },
 ]
 
@@ -241,6 +263,90 @@ const FloatingAddBlockButton = ({ editor }: { editor: TiptapEditor }) => {
                 </div>
             )}
         </div>
+    )
+}
+
+interface UploadJob {
+    id: number
+    name: string
+    progress: number
+    error?: string
+}
+
+let jobSeq = 0
+
+/** Provides the media picker + drag/drop/paste uploads to the editor, and shows upload progress. */
+const MediaBridgeSlot = () => {
+    const { editor } = useCurrentEditor()
+    const picker = useMediaPicker({ allowYouTube: true })
+    const [jobs, setJobs] = useState<UploadJob[]>([])
+    const openPicker = picker.open
+
+    useEffect(() => {
+        if (!editor) return
+        const b = bridge(editor)
+        b.pick = (kind) => openPicker(kind)
+        b.uploadFiles = (files, pos) => {
+            const update = (id: number, patch: Partial<UploadJob>) => setJobs((js) => js.map((j) => (j.id === id ? { ...j, ...patch } : j)))
+            files.forEach(async (file) => {
+                const id = ++jobSeq
+                setJobs((js) => [...js, { id, name: file.name, progress: 0 }])
+                const kind = kindOfFile(file)
+                if (!kind) return update(id, { error: 'Unsupported file type' })
+                if (file.size > MAX_BYTES[kind]) return update(id, { error: `Too large (max ${formatBytes(MAX_BYTES[kind])})` })
+                try {
+                    const item = await uploadMedia(file, { onProgress: (p) => update(id, { progress: p }) })
+                    const at = Math.min(pos, editor.state.doc.content.size)
+                    if (kind === 'image') {
+                        editor.chain().focus().insertContentAt(at, { type: 'image', attrs: { src: item.url, alt: '' } }).run()
+                    } else {
+                        const orientation = await orientationOf(item.url)
+                        editor.chain().focus().insertContentAt(at, { type: 'video', attrs: { src: item.url, orientation } }).run()
+                    }
+                    setJobs((js) => js.filter((j) => j.id !== id))
+                } catch (e) {
+                    update(id, { error: (e as Error).message })
+                }
+            })
+        }
+        return () => {
+            b.pick = null
+            b.uploadFiles = null
+        }
+    }, [editor, openPicker])
+
+    return (
+        <>
+            {picker.element}
+            {jobs.length > 0 && (
+                <div className="fixed bottom-6 right-6 z-50 w-72 space-y-2">
+                    {jobs.map((j) => (
+                        <div key={j.id} className="rounded-xl border border-sand-line bg-white p-3 text-xs shadow-lg">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="flex min-w-0 items-center gap-1.5 font-medium text-ink-900">
+                                    {!j.error && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-ember-500" />}
+                                    <span className="truncate">{j.name}</span>
+                                </span>
+                                {j.error ? (
+                                    <button type="button" onClick={() => setJobs((js) => js.filter((x) => x.id !== j.id))} title="Dismiss">
+                                        <XIcon className="h-3.5 w-3.5 text-ink-400" />
+                                    </button>
+                                ) : (
+                                    <span className="tabular-nums text-ink-400">{Math.round(j.progress * 100)}%</span>
+                                )}
+                            </div>
+                            {j.error ? (
+                                <p className="mt-1 text-red-600">{j.error}</p>
+                            ) : (
+                                <div className="mt-2 h-1 overflow-hidden rounded-full bg-sand">
+                                    <div className="h-full bg-ember-500 transition-[width]" style={{ width: `${j.progress * 100}%` }} />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
     )
 }
 

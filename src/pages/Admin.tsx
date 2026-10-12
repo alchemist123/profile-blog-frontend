@@ -15,8 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Plus, Edit, ExternalLink } from "lucide-react";
+import { Trash2, Plus, Edit, ExternalLink, Clapperboard, Eye, Heart, Film } from "lucide-react";
 import BlogComposer from "@/components/admin/BlogComposer";
+import VlogComposer from "@/components/admin/VlogComposer";
+import { deleteVlog, getVlogs, type Vlog } from "@/lib/vlogs";
+import { formatDuration } from "@/lib/media";
 import ProductivityDashboard from "@/components/admin/ProductivityDashboard";
 
 const Admin = () => {
@@ -27,6 +30,9 @@ const Admin = () => {
     const [loggingIn, setLoggingIn] = useState(false);
     const [blogs, setBlogs] = useState<BlogPost[]>([]);
     const [isEditing, setIsEditing] = useState(false);
+    const [vlogs, setVlogs] = useState<Vlog[]>([]);
+    const [editingVlog, setEditingVlog] = useState<Partial<Vlog> | null>(null);
+    const [tab, setTab] = useState("productivity");
     const [currentBlog, setCurrentBlog] = useState<Partial<BlogPost>>({});
 
     // Resume an existing session in this tab, and drop back to login when it expires.
@@ -41,6 +47,14 @@ const Admin = () => {
         window.addEventListener(ADMIN_SESSION_EXPIRED, onExpired);
         return () => window.removeEventListener(ADMIN_SESSION_EXPIRED, onExpired);
     }, []);
+
+    const refreshVlogs = () => {
+        getVlogs({ includeDrafts: true }).then(setVlogs).catch(() => {});
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) refreshVlogs();
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -120,6 +134,31 @@ const Admin = () => {
         );
     }
 
+    const handleDeleteVlog = async (id: string) => {
+        if (!confirm("Delete this vlog?")) return;
+        try {
+            await deleteVlog(id);
+            refreshVlogs();
+        } catch (err) {
+            alert("Failed to delete: " + (err as Error).message);
+        }
+    };
+
+    if (editingVlog) {
+        return (
+            <VlogComposer
+                key={editingVlog.id ?? "new-vlog"}
+                initial={editingVlog}
+                onSaved={refreshVlogs}
+                onExit={() => {
+                    setEditingVlog(null);
+                    setTab("vlogs");
+                    refreshVlogs();
+                }}
+            />
+        );
+    }
+
     if (isEditing) {
         return (
             <BlogComposer
@@ -143,15 +182,19 @@ const Admin = () => {
                     <Button onClick={() => { setCurrentBlog({}); setIsEditing(true); }} className="rounded-full">
                         <Plus className="mr-2 h-4 w-4" /> Write a story
                     </Button>
+                    <Button onClick={() => setEditingVlog({})} variant="outline" className="rounded-full border-ember-500/40 text-ember-400 hover:bg-ember-500/10 hover:text-ember-300">
+                        <Clapperboard className="mr-2 h-4 w-4" /> New vlog
+                    </Button>
                     <Button variant="ghost" onClick={handleLogout}>
                         Logout
                     </Button>
                 </div>
             </div>
 
-            <Tabs defaultValue="productivity" className="w-full max-w-full mx-auto flex flex-col items-center">
+            <Tabs value={tab} onValueChange={setTab} className="w-full max-w-full mx-auto flex flex-col items-center">
                 <TabsList className="mb-10 bg-muted/60 backdrop-blur-md rounded-full p-2 inline-flex h-auto items-center justify-center border shadow-sm w-fit mx-auto">
                     <TabsTrigger value="stories" className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md transition-all focus-visible:ring-0 focus-visible:ring-offset-0">Stories</TabsTrigger>
+                    <TabsTrigger value="vlogs" className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md transition-all focus-visible:ring-0 focus-visible:ring-offset-0">Vlogs</TabsTrigger>
                     <TabsTrigger value="productivity" className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md transition-all focus-visible:ring-0 focus-visible:ring-offset-0">Productivity</TabsTrigger>
                 </TabsList>
                 
@@ -211,6 +254,48 @@ const Admin = () => {
                     </div>
                 </TabsContent>
                 
+                <TabsContent value="vlogs" className="m-0 focus-visible:outline-none border-none outline-none w-full max-w-4xl mx-auto">
+                    {vlogs.length === 0 ? (
+                        <div className="flex flex-col items-center gap-4 py-20 text-center text-muted-foreground">
+                            <Film className="h-8 w-8" />
+                            <p>No vlogs yet. Share your first reel or video.</p>
+                            <Button onClick={() => setEditingVlog({})} className="rounded-full"><Clapperboard className="mr-2 h-4 w-4" /> New vlog</Button>
+                        </div>
+                    ) : (
+                        <div className="grid gap-3">
+                            {vlogs.map((v) => (
+                                <div key={v.id} className="group flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+                                    <div className={`relative shrink-0 overflow-hidden rounded-lg bg-slate-800 ${v.orientation === "portrait" ? "h-24 w-[54px]" : "h-[54px] w-24"}`}>
+                                        {v.posterUrl ? <img src={v.posterUrl} alt="" className="h-full w-full object-cover" /> : <Film className="m-auto mt-4 h-5 w-5 text-slate-500" />}
+                                        {v.durationSec > 0 && <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-[9px] font-semibold text-white">{formatDuration(v.durationSec)}</span>}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="flex items-center gap-2 truncate font-semibold text-slate-100">
+                                            {v.title}
+                                            {v.status === "draft" && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-500">Draft</span>}
+                                        </p>
+                                        <p className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+                                            <span className="rounded-full border border-slate-700 px-2 py-0.5 uppercase tracking-wider">{v.orientation === "portrait" ? "Reel" : "Video"}</span>
+                                            <span>{new Date(v.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                                            <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{v.views}</span>
+                                            <span className="flex items-center gap-1"><Heart className="h-3 w-3" />{v.likes}</span>
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                                        {v.status !== "draft" && (
+                                            <Button variant="ghost" size="icon" asChild title="View">
+                                                <a href={`/vlogs/${v.id}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="icon" title="Edit" onClick={() => setEditingVlog(v)}><Edit className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDeleteVlog(v.id)}><Trash2 className="h-4 w-4 hover:text-destructive" /></Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
+
                 <TabsContent value="productivity" className="m-0 focus-visible:outline-none border-none outline-none w-full max-w-6xl mx-auto px-2">
                     <ProductivityDashboard />
                 </TabsContent>

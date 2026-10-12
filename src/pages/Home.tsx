@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Terminal, Cpu, Database, Calendar, FileText, GitBranch, Github, ExternalLink, Code2, Server, Cloud, Brain, BookMarked, Users, UserPlus, Network } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getBlogs, type BlogPost } from "@/lib/storage";
+import HomeVlogs from "@/components/vlog/HomeVlogs";
 
 const RECENT_BLOGS_COUNT = 3;
 
@@ -373,6 +374,9 @@ const Home = () => {
                     </div>
                 </section>
             )}
+
+            {/* Vlogs */}
+            <HomeVlogs />
 
             {/* Summary Section */}
             <section id="summary" className="relative py-20 md:py-28 bg-[#0B1015] border-t border-slate-800/50">

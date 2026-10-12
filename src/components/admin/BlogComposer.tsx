@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Check, Circle, ImagePlus, Loader2, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Check, Circle, ImagePlus, Loader2, Sparkles } from "lucide-react";
+import { useMediaPicker } from "@/components/media/useMediaPicker";
+import TagInput from "@/components/admin/TagInput";
 import { getBlogTags, htmlToBlocks, saveBlog, type BlogPost, type BlogStatus } from "@/lib/storage";
 import { autoSummary, countWords, estimateReadingTime } from "@/lib/blog";
 import Editor from "@/components/ui/editor";
@@ -61,57 +63,6 @@ const AutoTextarea = ({ className, ...props }: React.TextareaHTMLAttributes<HTML
     return <textarea ref={ref} rows={1} className={cn("w-full resize-none overflow-hidden bg-transparent outline-none", className)} {...props} />;
 };
 
-const TagInput = ({ tags, onChange, suggestions }: { tags: string[]; onChange: (t: string[]) => void; suggestions: string[] }) => {
-    const [value, setValue] = useState("");
-    const add = (raw: string) => {
-        const t = raw.trim().replace(/^#/, "");
-        if (t && !tags.some((x) => x.toLowerCase() === t.toLowerCase())) onChange([...tags, t]);
-        setValue("");
-    };
-    const matches = value
-        ? suggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase()) && !tags.includes(s)).slice(0, 5)
-        : [];
-
-    return (
-        <div className="relative">
-            <div className="flex flex-wrap items-center gap-2">
-                {tags.map((t) => (
-                    <span key={t} className="inline-flex items-center gap-1 rounded-full bg-ink-950 py-1 pl-3 pr-1.5 text-xs font-medium text-white">
-                        {t}
-                        <button type="button" onClick={() => onChange(tags.filter((x) => x !== t))} className="rounded-full p-0.5 hover:bg-white/20" title={`Remove ${t}`}>
-                            <X className="h-3 w-3" />
-                        </button>
-                    </span>
-                ))}
-                <input
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === ",") {
-                            e.preventDefault();
-                            add(value);
-                        } else if (e.key === "Backspace" && !value && tags.length) {
-                            onChange(tags.slice(0, -1));
-                        }
-                    }}
-                    onBlur={() => value && add(value)}
-                    placeholder={tags.length ? "Add tag" : "Add tags (press Enter)…"}
-                    className="min-w-[140px] flex-1 bg-transparent py-1 text-sm text-ink-800 outline-none placeholder:text-ink-300"
-                />
-            </div>
-            {matches.length > 0 && (
-                <div className="absolute left-0 top-full z-30 mt-1 flex flex-wrap gap-1 rounded-xl border border-sand-line bg-white p-2 shadow-lg">
-                    {matches.map((m) => (
-                        <button key={m} type="button" onMouseDown={(e) => { e.preventDefault(); add(m); }} className="rounded-full bg-sand px-3 py-1 text-xs text-ink-700 hover:bg-ink-950 hover:text-white">
-                            {m}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
 const BlogComposer = ({ initial, onExit, onSaved }: BlogComposerProps) => {
     const [draft, setDraft] = useState<Draft>(() => toDraft(initial));
     const [restored, setRestored] = useState(false);
@@ -119,7 +70,7 @@ const BlogComposer = ({ initial, onExit, onSaved }: BlogComposerProps) => {
     const [saving, setSaving] = useState<BlogStatus | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [publishOpen, setPublishOpen] = useState(false);
-    const [coverEditing, setCoverEditing] = useState(false);
+    const picker = useMediaPicker();
     const [knownTags, setKnownTags] = useState<string[]>([]);
     // Editor is uncontrolled after mount; bump this to remount it with restored content.
     const [editorKey, setEditorKey] = useState(0);
@@ -226,6 +177,11 @@ const BlogComposer = ({ initial, onExit, onSaved }: BlogComposerProps) => {
         return () => window.removeEventListener("keydown", onKey);
     }, [save, isPublished]);
 
+    const changeCover = async () => {
+        const sel = await picker.open("image", "Cover image");
+        if (sel) update({ coverImage: sel.url });
+    };
+
     const discardLocal = () => {
         try {
             localStorage.removeItem(localKey(initial.id));
@@ -308,32 +264,20 @@ const BlogComposer = ({ initial, onExit, onSaved }: BlogComposerProps) => {
 
             <main className="mx-auto max-w-[760px] px-4 pb-24 pt-10 sm:pl-14">
                 {/* Cover */}
-                {draft.coverImage && !coverEditing ? (
+                {draft.coverImage ? (
                     <div className="group relative mb-10 overflow-hidden rounded-2xl ring-1 ring-sand-line">
                         <img src={draft.coverImage} alt="" className="aspect-[16/8] w-full object-cover" />
-                        <div className="absolute right-3 top-3 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                            <button type="button" onClick={() => setCoverEditing(true)} className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white">Change</button>
+                        <div className="absolute right-3 top-3 flex gap-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                            <button type="button" onClick={changeCover} className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white">Change</button>
                             <button type="button" onClick={() => update({ coverImage: "" })} className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-red-600 shadow hover:bg-white">Remove</button>
                         </div>
                     </div>
-                ) : coverEditing ? (
-                    <div className="mb-8 flex items-center gap-2 rounded-2xl border border-sand-line bg-white p-2">
-                        <ImagePlus className="ml-2 h-4 w-4 shrink-0 text-ink-400" />
-                        <input
-                            autoFocus
-                            value={draft.coverImage}
-                            onChange={(e) => update({ coverImage: e.target.value })}
-                            onKeyDown={(e) => e.key === "Enter" && setCoverEditing(false)}
-                            placeholder="Paste an image URL (https://…)"
-                            className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-ink-300"
-                        />
-                        <button type="button" onClick={() => setCoverEditing(false)} className="rounded-xl bg-ink-950 px-4 py-2 text-xs font-semibold text-white">Done</button>
-                    </div>
                 ) : (
-                    <button type="button" onClick={() => setCoverEditing(true)} className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-ink-400 hover:bg-sand hover:text-ink-800">
+                    <button type="button" onClick={changeCover} className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-ink-400 hover:bg-sand hover:text-ink-800">
                         <ImagePlus className="h-4 w-4" /> Add cover image
                     </button>
                 )}
+                {picker.element}
 
                 <div className="mb-6">
                     <TagInput tags={draft.tags} onChange={(tags) => update({ tags })} suggestions={knownTags} />
