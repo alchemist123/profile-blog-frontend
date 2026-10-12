@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, Eye, Heart } from "lucide-react";
-import { getVlog, getVlogs, likeVlog, recordVlogView, type Vlog } from "@/lib/vlogs";
+import { getVlog, getVlogs, likeVlog, posterOf, recordVlogView, type Vlog } from "@/lib/vlogs";
+import { isoDuration, setPageMeta } from "@/lib/seo";
 import { AUTHOR, formatDate } from "@/lib/blog";
-import { formatDuration } from "@/lib/media";
+import { formatDuration, youTubeEmbedUrl } from "@/lib/media";
 import VlogPlayer from "@/components/vlog/VlogPlayer";
 import ReelViewer from "@/components/vlog/ReelViewer";
 import { ReelCard, VideoCard } from "@/components/vlog/VlogCards";
@@ -34,7 +35,6 @@ const VlogWatch = () => {
                 } catch {
                     setLiked(false);
                 }
-                document.title = `${v.title} | Vlogs`;
             })
             .catch(() => navigate("/vlogs", { replace: true }));
         window.scrollTo({ top: 0 });
@@ -43,6 +43,31 @@ const VlogWatch = () => {
     useEffect(() => {
         getVlogs().then(setAll).catch(() => setAll([]));
     }, []);
+
+    // SEO: description, canonical, social cards and VideoObject structured data
+    useEffect(() => {
+        if (!vlog) return;
+        const url = `${window.location.origin}/vlogs/${vlog.id}`;
+        const thumb = posterOf(vlog);
+        return setPageMeta({
+            title: `${vlog.title} | Vlogs · Amal V S`,
+            description: vlog.caption || vlog.title,
+            url,
+            image: thumb || undefined,
+            type: "video.other",
+            jsonLd: {
+                "@type": "VideoObject",
+                name: vlog.title,
+                description: vlog.caption || vlog.title,
+                thumbnailUrl: thumb ? [thumb] : undefined,
+                uploadDate: vlog.createdAt,
+                duration: isoDuration(vlog.durationSec),
+                ...(vlog.source === "youtube" ? { embedUrl: youTubeEmbedUrl(vlog.videoUrl) ?? undefined } : { contentUrl: vlog.videoUrl }),
+                keywords: vlog.tags.join(", ") || undefined,
+                author: { "@type": "Person", name: AUTHOR.name },
+            },
+        });
+    }, [vlog]);
 
     // Reels count their own views inside the viewer; landscape videos count here.
     useEffect(() => {

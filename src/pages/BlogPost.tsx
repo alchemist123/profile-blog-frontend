@@ -17,6 +17,7 @@ import TableOfContents from "@/components/blog/TableOfContents";
 import ReadingProgress from "@/components/blog/ReadingProgress";
 import EmbeddedHtml from "@/components/blog/EmbeddedHtml";
 import { attachAutoHeightEmbed } from "@/lib/embed";
+import { setPageMeta } from "@/lib/seo";
 import BlogCard from "@/components/blog/BlogCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -145,26 +146,28 @@ const BlogPost = () => {
     }, [blog]);
     const headings = body.headings;
 
-    // OG meta for share previews
+    // SEO: description, canonical, social cards and Article structured data
     useEffect(() => {
         if (!blog) return;
-        const setMeta = (property: string, content: string) => {
-            let el = document.querySelector(`meta[property="${property}"]`);
-            if (!el) {
-                el = document.createElement("meta");
-                el.setAttribute("property", property);
-                document.head.appendChild(el);
-            }
-            el.setAttribute("content", content);
-        };
-        setMeta("og:title", blog.title);
-        setMeta("og:description", blog.summary || blog.title);
-        setMeta("og:image", blog.coverImage || "");
-        setMeta("og:url", window.location.href);
-        document.title = `${blog.title} | Amal V S`;
-        return () => {
-            document.title = "Amal V S | Blog";
-        };
+        const url = `${window.location.origin}/blog/${blog.id}`;
+        return setPageMeta({
+            title: `${blog.title} | Amal V S`,
+            description: blog.summary || blog.title,
+            url,
+            image: blog.coverImage,
+            type: "article",
+            jsonLd: {
+                "@type": "BlogPosting",
+                headline: blog.title,
+                description: blog.summary || undefined,
+                image: blog.coverImage ? [blog.coverImage] : undefined,
+                datePublished: blog.createdAt,
+                dateModified: blog.updatedAt ?? blog.createdAt,
+                author: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.linkedin },
+                keywords: (blog.tags ?? []).join(", ") || undefined,
+                mainEntityOfPage: { "@type": "WebPage", "@id": url },
+            },
+        });
     }, [blog]);
 
     const loading = !blog || blog.id !== id;
